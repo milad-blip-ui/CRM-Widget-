@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && cd ../creator_app && zet pack",
+    "build": "vite build && cd ../crm_app && zet pack",
     "lint": "eslint .",
     "preview": "vite preview"
   },

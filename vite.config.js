@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [react()],
   base: './',
   build: {
-    outDir: '../creator_app/app',
+    outDir: '../crm_app/app',
     emptyOutDir: true, // also necessary
   }
 })

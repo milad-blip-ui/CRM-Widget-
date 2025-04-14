@@ -203,12 +203,31 @@ module.exports = {
           '0%': { opacity: '0', transform: 'translateY(0)' },
           '50%': { opacity: '1', transform: 'translateY(-5px)' },
           '100%': { opacity: '0', transform: 'translateY(0)' },
-        }
+        },
+        l5: {
+          '0%': {
+            boxShadow: '20px 0 rgba(99, 102, 241, 1), -20px 0 rgba(99, 102, 241, 0.2)', // Indigo 600
+            background: 'rgba(99, 102, 241, 1)',  // Indigo 600
+          },
+          '33%': {
+            boxShadow: '20px 0 rgba(99, 102, 241, 1), -20px 0 rgba(99, 102, 241, 0.2)', // Indigo 600
+            background: 'rgba(99, 102, 241, 0.2)', // Indigo 600
+          },
+          '66%': {
+            boxShadow: '20px 0 rgba(99, 102, 241, 0.2), -20px 0 rgba(99, 102, 241, 1)', // Indigo 600
+            background: 'rgba(99, 102, 241, 0.2)', // Indigo 600
+          },
+          '100%': {
+            boxShadow: '20px 0 rgba(99, 102, 241, 0.2), -20px 0 rgba(99, 102, 241, 1)', // Indigo 600
+            background: 'rgba(99, 102, 241, 1)', // Indigo 600
+          },
+        },
       },
       animation: {
         fadeIn: 'fadeIn 0.8s ease-out',
         progress: 'progress 3s ease-in-out infinite',
         dotFade: 'dotFade 1.5s infinite',
+        l5: 'l5 1s infinite linear alternate',
       }
     },
   },

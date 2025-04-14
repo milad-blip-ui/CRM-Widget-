@@ -1,25 +1,69 @@
 import React, {useState,useEffect,useRef,useMemo,useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AppContext } from '../../context/AppContext'; 
 import toast from 'react-hot-toast';
 import JoditEditor from 'jodit-react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css'; 
-import { jsPDF } from "jspdf";
-import html2canvas from "html2canvas";
 import CustomDropdown from '../../components/shared/CustomDropdown';
+import AccountDropdown from '../../components/shared/AccountDropdown';
 import { formatDate } from '../../utils/dateUtils';
 import createEstimate from '../../services/createEstimate';
 import { PageSpinner } from '../../components/shared/Spinner';
 import {EstimatesContext} from '../../context/EstimateContext'
 
 const Create = ({placeholder }) => {  
-  const { data } = useContext(AppContext);
+  const [data, setData] = useState(null);
   const { fetchEstimates} = useContext(EstimatesContext);
   const navigate = useNavigate();
   const  [createSpinner, setCreateSpinner] = useState(false);
   const [forceUpdate, setForceUpdate] = useState(false);
    
+  const [fetchedData, setFetchedData] = useState([]);
+  const [selectedAddress, setSelectedAddress] = useState(null);
+
+  const [newContactOptions, setNewContactOptions] = useState([]);
+  const [loadingAccountDetails, setLoadingAccountDetails] = useState(false);
+  const [loadingCreatorData, setLoadingCreatorData] = useState(true);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const connection = "crmwidgetconnection";
+        const [allProductType, allEmployee] = await Promise.all([
+          window.ZOHO.CRM.CONNECTION.invoke(connection, {
+            parameters: {},
+            headers: {
+              "Content-Type": "application/json",
+            },
+            method: "GET",
+            url: `https://www.zohoapis.com/creator/v2.1/data/sst1source/source-erp/report/All_Product_Types`,
+            param_type: 1,
+          }),
+          window.ZOHO.CRM.CONNECTION.invoke(connection, {
+            parameters: {},
+            headers: {
+              "Content-Type": "application/json",
+            },
+            method: "GET",
+            url: `https://www.zohoapis.com/creator/v2.1/data/sst1source/source-erp/report/All_Employees`,
+            param_type: 1,
+          })
+        ]);
+
+        setData({
+          allProductTypes: allProductType.details.statusMessage,
+          allEmployees: allEmployee.details.statusMessage
+        });
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        toast.error("Failed to load initial data");
+      } finally {
+        setLoadingCreatorData(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+
   // 1. Define your tax rate options array
   const taxRateOptions = [
     { value: "0%", label: "0%" },
@@ -48,79 +92,139 @@ const Create = ({placeholder }) => {
 
   //Product Type Data
   // Memoize productTypeOptions since it doesn't change often
-const productTypeOptions = useMemo(() => 
-  data?.allProductTypes?.data?.map(type => ({
-    value: type.ID,
-    label: type.Type_field,
-    taxable: type.Taxable === "true"
-  })) || [], 
-  [data?.allProductTypes?.data]
-);
+  const productTypeOptions = useMemo(() => 
+    data?.allProductTypes?.data?.map(type => ({
+      value: type.ID,
+      label: type.Type_field,
+      taxable: type.Taxable === "true"
+    })) || [], 
+    [data?.allProductTypes?.data]
+  );
 
-  //Contact options
-  const contactOptions = data?.contact?.data?.length 
-  ? data.contact.data.map(contact => ({
-      value: `${contact.First_Name} ${contact.Last_Name}`,
-      label: `${contact.First_Name} ${contact.Last_Name}`,
-    }))
-  : [];
-  //account name
-const accountObject = data?.account?.id ? { 
-  value: data.account.id, 
-  label: data.account.Account_Name || 'Unnamed Account' 
-} : null;
-  // 1. Filter employees with Sales profile and transform data
-  const salesTeam = data?.allEmployees?.data
-  ?.filter(employee => employee.Profile?.display_value === "Sales")
-  ?.map(employee => ({
-    value: employee.ID,
-    label: employee.Name_SL || `${employee.Name?.first_name} ${employee.Name?.last_name}`.trim()
-  })) || [];
-
-  //account address 
-  const [fetchedData, setFetchedData] = useState([]);
-  const [selectedAddress, setSelectedAddress] = useState(null);
-  // Prepare address data and set default selection
-useEffect(() => {
-  const addressData = [];
-  
-  // 1. Add main account address if exists
-  if (data?.account) {
-    const mainAddress = {
-      name: data.account.Account_Name,
-      Billing_Street: data.account.Billing_Street,
-      Billing_City: data.account.Billing_City,
-      Billing_State: data.account.Billing_State,
-      Billing_Code: data.account.Billing_Code,
-      Shipping_Street: data.account.Shipping_Street,
-      Shipping_City: data.account.Shipping_City,
-      Shipping_State: data.account.Shipping_State,
-      Shipping_Code: data.account.Shipping_Code,
-    };
-    
-    addressData.push(mainAddress);
-    setSelectedAddress(mainAddress); // Set as default selected
-  }
-
-  // 2. Add additional addresses if exist
-  if (data?.address?.data?.length > 0) {
-    data.address.data.forEach(address => {
-      addressData.push({
-        name: address.Name,
-        Billing_Street: address.Billing_Street,
-        Billing_City: address.Billing_City,
-        Billing_State: address.Billing_State,
-        Billing_Code: address.Billing_Code,
-        Shipping_Street: address.Shipping_Street,
-        Shipping_City: address.Shipping_City,
-        Shipping_State: address.Shipping_State,
-        Shipping_Code: address.Shipping_Code,
-      });
+const fetchAccountDetails = async (accountId) => {
+  setLoadingAccountDetails(true);
+  try {
+    // Fetch the account details
+    const accountResponse = await window.ZOHO.CRM.API.getRecord({
+      Entity: "Accounts",
+      RecordID: accountId,
     });
-  }
+    const accountData = accountResponse.data[0];
 
-  setFetchedData(addressData);
-}, [data]);
+    // Update formData with vendor number
+    setFormData(prev => ({
+      ...prev,
+      vendorNumber: accountData.Vendor_number || ''
+    }));
+
+    const addressData = [];
+
+    // Fetch contacts
+    const contactsResponse = await window.ZOHO.CRM.API.getRelatedRecords({
+      Entity: "Accounts",
+      RecordID: accountId,
+      RelatedList: "Contacts",
+    });
+    console.log("contactsResponse", contactsResponse);
+    // Handle empty or invalid response
+    if (!contactsResponse || !contactsResponse.data || !Array.isArray(contactsResponse.data)) {
+      console.warn('No contacts data found or invalid response structure');
+      setNewContactOptions([]); // Set empty array if no data
+    } else {
+      setNewContactOptions(
+        contactsResponse.data
+          // Filter out contacts without names
+          .filter(contact => contact.First_Name || contact.Last_Name)
+          .map((contact) => ({
+            value: `${contact.First_Name || ''} ${contact.Last_Name || ''}`.trim(),
+            label: `${contact.First_Name || ''} ${contact.Last_Name || ''}`.trim(),
+          }))
+      );
+    }
+    
+
+    // 1. Add main account address if exists
+    const mainAddress = {
+      name: accountData?.Account_Name,
+      Billing_Street: accountData?.Billing_Street,
+      Billing_City: accountData?.Billing_City,
+      Billing_State: accountData?.Billing_State,
+      Billing_Code: accountData?.Billing_Code,
+      Shipping_Street: accountData?.Shipping_Street,
+      Shipping_City: accountData?.Shipping_City,
+      Shipping_State: accountData?.Shipping_State,
+      Shipping_Code: accountData?.Shipping_Code,
+    };
+    addressData.push(mainAddress);
+    setSelectedAddress(mainAddress); 
+
+    // Update formData with the main address details
+    setFormData(prev => ({
+      ...prev,
+      locationName: accountData?.Account_Name || '', // Set account name as location
+      billingAddress: {
+        street: accountData?.Billing_Street || '',
+        city: accountData?.Billing_City || '',
+        state: accountData?.Billing_State || '',
+        zip: accountData?.Billing_Code || ''
+      },
+      shippingAddress: {
+        street: accountData?.Shipping_Street || '',
+        city: accountData?.Shipping_City || '',
+        state: accountData?.Shipping_State || '',
+        zip: accountData?.Shipping_Code || ''
+      }
+    }));
+    // Fetch addresses
+    const addressesResponse = await window.ZOHO.CRM.API.getRelatedRecords({
+      Entity: "Accounts",
+      RecordID: accountId,
+      RelatedList: "Address",
+    });
+    console.log("addressesResponse", addressesResponse);
+    // 2. Add additional addresses if exist
+    // Check if response has valid data before processing
+    if (addressesResponse && addressesResponse.data && Array.isArray(addressesResponse.data)) {
+      addressesResponse.data.forEach((address) => {
+        // Only push address if it has at least one field with data
+        if (address.Name || 
+            address.Billing_Street || 
+            address.Shipping_Street) {
+          addressData.push({
+            name: address.Name || '',
+            Billing_Street: address.Billing_Street || '',
+            Billing_City: address.Billing_City || '',
+            Billing_State: address.Billing_State || '',
+            Billing_Code: address.Billing_Code || '',
+            Shipping_Street: address.Shipping_Street || '',
+            Shipping_City: address.Shipping_City || '',
+            Shipping_State: address.Shipping_State || '',
+            Shipping_Code: address.Shipping_Code || '',
+          });
+        }
+      });
+    } else {
+      console.warn('No valid addresses data found in response');
+    }
+    setFetchedData(addressData);
+  } catch (error) {
+    console.error("Error:", error);
+    toast.error("Failed to load account details");
+  } finally {
+    setLoadingAccountDetails(false);
+  }
+};
+
+  // 1. Filter employees with Sales profile and transform data
+  const salesTeam = useMemo(() => 
+    data?.allEmployees?.data
+      ?.filter(employee => employee.Profile?.zc_display_value === "Sales")
+      ?.map(employee => ({
+        value: employee.ID,
+        label: employee.Name_SL || `${employee.Name?.first_name} ${employee.Name?.last_name}`.trim()
+      })) || [],
+    [data?.allEmployees?.data]
+  );
 // Handle address selection change
 const handleAddressChange = (selectedName) => {
   const selected = fetchedData.find(addr => addr.name === selectedName);
@@ -173,33 +277,33 @@ const handleAddressChange = (selectedName) => {
   const [formData, setFormData] = useState({
     quoteDate: new Date(),
     quoteName: '',
-    crmAccountName: accountObject?.value,
-    crmAccountNameString: accountObject?.label || '',
+    crmAccountName: '',
+    crmAccountNameString:  '',
     postProduction: '',
     leadTime: '',
     taxRate: '',
-    locationName: data?.account?.Account_Name || '',
+    locationName:  '',
     approver: '',
     approverName: '' ,
     salesperson: '',
-    salespersonName: '', // Add this
-    vendorNumber: data?.account?.Vendor_number || '',
+    salespersonName: '',
+    vendorNumber: '',
     crmContactName: '',
     internalApprover: '',
     privateNotes:'',
     publicNotes:'',
     isHotJob:'',
     billingAddress: {
-      street: data?.account?.Billing_Street || '',
-      city: data?.account?.Billing_City || '',
-      state: data?.account?.Billing_State || '',
-      zip: data?.account?.Billing_Code || ''
+      street:  '',
+      city: '',
+      state:  '',
+      zip: ''
     },
     shippingAddress: {
-      street: data?.account?.Shipping_Street || '',
-      city: data?.account?.Shipping_City || '',
-      state: data?.account?.Shipping_State || '',
-      zip: data?.account?.Shipping_Code || ''
+      street:  '',
+      city: '',
+      state:  '',
+      zip:  ''
     }
 
   });
@@ -651,33 +755,33 @@ const handleDownPaymentChange = (e) => {
     setFormData({
       quoteDate: new Date(),
       quoteName: '',
-      crmAccountName: accountObject?.value,
-      crmAccountNameString: accountObject?.label || '',
+      crmAccountName:'',
+      crmAccountNameString: '',
       postProduction: '',
       leadTime: '',
       taxRate: '',
-      locationName: data?.account?.Account_Name || '',
+      locationName: '',
       approver: '',
       approverName: '',
       salesperson: '',
       salespersonName: '', 
-      vendorNumber: data?.account?.Vendor_number || '',
+      vendorNumber: '',
       crmContactName: '',
       internalApprover: '',
       privateNotes: '',
       publicNotes: '',
       isHotJob: '',
       billingAddress: {
-        street: data?.account?.Billing_Street || '',
-        city: data?.account?.Billing_City || '',
-        state: data?.account?.Billing_State || '',
-        zip: data?.account?.Billing_Code || ''
+        street: '',
+        city:  '',
+        state: '',
+        zip:''
       },
       shippingAddress: {
-        street: data?.account?.Shipping_Street || '',
-        city: data?.account?.Shipping_City || '',
-        state: data?.account?.Shipping_State || '',
-        zip: data?.account?.Shipping_Code || ''
+        street: '',
+        city: '',
+        state:  '',
+        zip: ''
       }
       
     });
@@ -724,82 +828,6 @@ const handleDownPaymentChange = (e) => {
       totalReceivable: 0
     });
   };
-  const generateRichNotePDF = async (htmlContent, title, filename) => {
-    // Create a temporary container for the HTML content
-    const tempDiv = document.createElement('div');
-    tempDiv.style.position = 'absolute';
-    tempDiv.style.left = '-9999px';
-    tempDiv.style.width = '190mm'; // A4 width
-    tempDiv.style.padding = '20px';
-    tempDiv.style.fontFamily = 'Arial, sans-serif';
-    tempDiv.style.backgroundColor = '#ffffff';
-    
-    // Add title and content with basic styling
-    tempDiv.innerHTML = `
-      <div style="max-width: 100%; word-wrap: break-word;">
-        <h1 style="font-size: 18px; color: #333; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 5px;">
-          ${title}
-        </h1>
-        <div style="font-size: 14px; line-height: 1.5;">
-          ${htmlContent}
-        </div>
-      </div>
-    `;
-  
-    document.body.appendChild(tempDiv);
-  
-    try {
-      // Convert the HTML to canvas
-      const canvas = await html2canvas(tempDiv, {
-        scale: 2, // Higher quality
-        logging: false,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: '#ffffff',
-        scrollX: 0,
-        scrollY: 0,
-        windowWidth: tempDiv.scrollWidth,
-        windowHeight: tempDiv.scrollHeight
-      });
-  
-      // Create PDF
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const imgData = canvas.toDataURL('image/png');
-      
-      // Calculate dimensions to maintain aspect ratio
-      const pageWidth = pdf.internal.pageSize.getWidth() - 20; // 10mm margins on each side
-      const pageHeight = pdf.internal.pageSize.getHeight() - 20;
-      const imgRatio = canvas.width / canvas.height;
-      let imgWidth = pageWidth;
-      let imgHeight = imgWidth / imgRatio;
-  
-      // If content is too tall, scale down
-      if (imgHeight > pageHeight) {
-        imgHeight = pageHeight;
-        imgWidth = imgHeight * imgRatio;
-      }
-  
-      // Add image to PDF
-      pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
-      
-      // Convert to File object with proper metadata
-      const pdfBlob = pdf.output('blob');
-      const pdfFile = new File([pdfBlob], filename, {
-        type: 'application/pdf',
-        lastModified: Date.now()
-      });
-  
-      return pdfFile;
-    } catch (error) {
-      console.error('Error generating PDF:', error);
-      throw new Error(`Failed to generate PDF: ${error.message}`);
-    } finally {
-      // Clean up temporary element
-      if (document.body.contains(tempDiv)) {
-        document.body.removeChild(tempDiv);
-      }
-    }
-  };
   // Handler for Form Submit
   const handleSubmit = async (e) => {
   e.preventDefault();
@@ -821,40 +849,6 @@ const handleDownPaymentChange = (e) => {
   }
 
     setCreateSpinner(true);   
-
-    // Create copies of attachments arrays to modify
-    let finalCustomerAttachments = [...customerAttachments];
-    let finalPrivateAttachments = [...privateAttachments];
-
-        // Generate PDF for public notes
-  if (formData.publicNotes && formData.publicNotes.trim() !== '') {
-    const publicNotesPDF = await generateRichNotePDF(
-      formData.publicNotes, 
-      'Public Notes',
-      'Public_Notes.pdf' // Explicit filename
-    );
-    finalCustomerAttachments.push({
-      id: finalCustomerAttachments.length + 1,
-      file: publicNotesPDF, // Now a File object
-      fileDescription: 'Public Notes',
-      fileName: 'Public_Notes.pdf'
-    });
-  }
-
-  // Same for private notes
-  if (formData.privateNotes && formData.privateNotes.trim() !== '') {
-    const privateNotesPDF = await generateRichNotePDF(
-      formData.privateNotes,
-      'Private Notes',
-      'Private_Notes.pdf' // Explicit filename
-    );
-    finalPrivateAttachments.push({
-      id: finalPrivateAttachments.length + 1,
-      file: privateNotesPDF, // Now a File object
-      fileDescription: 'Private Notes',
-      fileName: 'Private_Notes.pdf'
-    });
-  }
 
     const refURLS = referenceUrls
     .map(item => {
@@ -887,7 +881,7 @@ const handleDownPaymentChange = (e) => {
         Vendor_Number: formData.vendorNumber,
         Down_Payment: accountingSummary.downPaymentPercent,
         Shipping_Name: formData.locationName,
-        Billing_Name: data?.account?.Account_Name || '',
+        Billing_Name: formData.crmAccountNameString || '',
         Ship_To: { 
           address_line_2: formData.shippingAddress.street,
           district_city: formData.shippingAddress.city,
@@ -907,12 +901,12 @@ const handleDownPaymentChange = (e) => {
         Reference_URL: refURLS,
         // Include all other fields you want in the JSON
         Accounting_Summary: accountingSummary,
-        Customer_Attachments: finalCustomerAttachments.map(att => ({
+        Customer_Attachments: customerAttachments.map(att => ({
           file: att.file,
           fileDescription: att.fileDescription,
           fileName: att.fileName // Add this
         })),
-        Private_Attachments: finalPrivateAttachments.map(att => ({
+        Private_Attachments: privateAttachments.map(att => ({
           file: att.file,
           fileDescription: att.fileDescription,
           fileName: att.fileName // Add this
@@ -933,12 +927,12 @@ const handleDownPaymentChange = (e) => {
     };
     console.log("payload",payload)
   try {
-    const result = await createEstimate(payload, finalCustomerAttachments, finalPrivateAttachments);
+    const result = await createEstimate(payload, customerAttachments, privateAttachments);
     if (result.data) {
       toast.success('Record created successfully!');
       resetFormToDefault();
-      await fetchEstimates();
-      navigate('/');
+      // await fetchEstimates();
+      // navigate('/');
     } else {
       // Log the result in case of failure for debugging
       console.error('Failed to create record:', result);
@@ -957,6 +951,11 @@ const handleDownPaymentChange = (e) => {
   const handleReset = () => {
     resetFormToDefault();
   };
+
+  // Render spinner if still loading
+  if (loadingCreatorData) {
+    return <PageSpinner />;
+  }
   return (
     <div className='flex bg-gray-25 items-center w-full'>
       <form onSubmit={handleSubmit} ref={formRef} className="p-6  space-y-4 w-full">
@@ -966,35 +965,28 @@ const handleDownPaymentChange = (e) => {
               <label className="input-label">
                 CRM Account <span className="text-red-500">*</span>
               </label>
-              <select
-                name="crmAccountName"
-                className="input-box"
+              <AccountDropdown
                 value={formData.crmAccountName}
-                readOnly
-              >
-                  <option>{accountObject?.label}</option>
-              </select>
+                onChange={(value, accountName) => {
+                  setFormData(prev => ({
+                    ...prev,
+                    crmAccountName: value,
+                    crmAccountNameString: accountName || ''
+                  }));
+                  // Call your additional function here
+                  fetchAccountDetails(value);
+                }}
+                searchable={true}  // Changed from string "true" to boolean true
+                placeholder="-Select-"
+                className="w-full"
+              />
             </div>
-            {/* <div className='mt-4'>
-              <label className="input-label">
-                CRM Contact
-              </label>
-              <select
-                name="crmContactName"
-                className="input-box"
-                value={formData.crmContactName}
-                onChange={handleChange}
-              >
-                <option value="">CRM Contact</option>
-               
-              </select>
-            </div> */}
             <div className='mt-4'>
             <label className="input-label">
               CRM Contact
             </label>
             <CustomDropdown
-              options={contactOptions}
+              options={newContactOptions}
               value={formData.crmContactName}
               onChange={(value) => setFormData(prev => ({
                 ...prev,
@@ -1002,6 +994,7 @@ const handleDownPaymentChange = (e) => {
               }))}
               placeholder="-Select-"
               className="w-full"
+              disabled={loadingAccountDetails}
             />
           </div>
             <div className="mt-4">
@@ -1140,9 +1133,8 @@ const handleDownPaymentChange = (e) => {
                 type="text"
                 name="vendorNumber"
                 className="input-box" // Gray background indicates readonly
-                value={data?.account?.Vendor_number || ''} // Directly use account data
+                value={formData.vendorNumber} // Directly use account data
                 readOnly // Makes the field non-editable
-                onChange={() => {}} // Empty handler to prevent warnings
               />
           </div>
           {/* Is Hot Job */}
@@ -1187,11 +1179,11 @@ const handleDownPaymentChange = (e) => {
           }))}
           value={selectedAddress?.name || ''}
           onChange={handleAddressChange}
-          placeholder="Select address"
+          placeholder="-Select-"
           className="w-full"
           searchable="true"
         />
-        
+        {loadingAccountDetails && <PageSpinner />}
         {/* Display selected address details */}
         {selectedAddress && (
           <div className="mt-4 flex items-start gap-16">
@@ -1340,18 +1332,6 @@ const handleDownPaymentChange = (e) => {
 
                  {/* Product Type */}
                  <div className="w-44">
-                  {/* <select
-                    className="input-box"
-                    value={item.productType}
-                    onChange={(e) => handleProductTypeChange(item.id, e.target.value)}
-                  >
-                    <option value="" disabled>-Select-</option>
-                    {productTypes.map((type) => (
-                      <option key={type.ID} value={type.ID}>
-                        {type.Type_field}
-                      </option>
-                    ))}
-                  </select> */}
                   <CustomDropdown
                     options={productTypeOptions}
                     value={item.Product_Type1}
@@ -1386,18 +1366,19 @@ const handleDownPaymentChange = (e) => {
               </div>
                 {/* Unit */}
                 <div className="w-28">
-                  <select
-                    className="input-box"
+                <CustomDropdown
+                    options={unitOptions.map(option => ({
+                      value: option,
+                      label: option
+                    }))}
                     value={item.Unit}
-                    onChange={(e) => setItems(items.map(i =>
-                      i.id === item.id ? { ...i, Unit: e.target.value } : i
+                    onChange={(value) => setItems(items.map(i =>
+                      i.id === item.id ? { ...i, Unit: value } : i
                     ))}
-                  >
-                    <option value="" disabled>-Select-</option>
-                    {unitOptions.map((option, idx) => (
-                      <option key={idx} value={option}>{option}</option>
-                    ))}
-                  </select>
+                    placeholder="-Select-"
+                    className="w-full" // or your preferred width
+                    searchable={false} // Since these are predefined units
+                  />
                 </div>
                 {/* Description */}
                 <div className="w-20">

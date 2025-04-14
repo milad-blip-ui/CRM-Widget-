@@ -38,7 +38,7 @@ const Card = ({ card, handleDragStart }) => {
         layoutId={card.ID}
         draggable="true"
         onDragStart={(e) => handleDragStart(e, { Quote: card.Quote, ID: card.ID, Status: card.Status })}
-        className={`cursor-pointer active:cursor-grabbing w-full bg-white flex flex-col justify-between gap-2 items-start shadow-sm rounded-lg p-3`}
+        className={`cursor-pointer active:cursor-grabbing w-full bg-white flex flex-col justify-between gap-2 items-start shadow-sm border border-gray-200 rounded-lg p-3`}
         onClick={handleClick}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => {

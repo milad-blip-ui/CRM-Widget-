@@ -142,11 +142,14 @@ const CustomDropdown = ({
                 filteredOptions.map((option) => (
                   <div
                     key={option.value}
-                    className={`px-4 py-2 cursor-pointer hover:bg-indigo-50 ${value === option.value ? 'bg-indigo-100' : ''}`}
+                    className={`px-4 py-2 cursor-pointer hover:bg-indigo-50 flex items-center ${value === option.value ? 'bg-indigo-100 font-medium' : ''}`}
                     onClick={() => handleSelect(option.value)}
                   >
                     {option.label}
-                  </div>
+                    {value === option.value && (
+                        <i className="fa-solid fa-check ml-auto text-indigo-600 text-xs"></i>
+                      )}
+                  </div> 
                 ))
               ) : (
                 <div className="px-4 py-2 text-gray-500">No options found</div>

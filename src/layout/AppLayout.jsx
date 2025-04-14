@@ -11,10 +11,10 @@ const LayoutContent = () => {
   return (
     <div className="w-screen h-screen overflow-y-auto overflow-x-auto">
       <div>
-        <AppSidebar />
-        <Backdrop />
+        {/* <AppSidebar />
+        <Backdrop /> */}
       </div>
-      <div
+      {/* <div
         className={`flex-1 transition-all duration-300 ease-in-out ${isExpanded || isHovered ? "lg:ml-[230px]" : "lg:ml-[80px]"} ${isMobileOpen ? "ml-0" : ""}`}
       >
         
@@ -23,7 +23,11 @@ const LayoutContent = () => {
          
           <Outlet />
         </div>
-      </div>
+      </div> */}
+<div>
+  <AppHeader />
+  <Outlet />
+</div>
     </div>
   );
 };

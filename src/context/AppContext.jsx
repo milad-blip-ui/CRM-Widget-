@@ -7,18 +7,12 @@ export const AppContext = createContext();
 // Create a Provider Component
 export const AppProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
-    const [data, setData] = useState({
-        account: {},
-        contact: {},
-        address: {},
-        allProductType: {},
-        allEmployees: {}
-    });
+    const [data, setData] = useState(null);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-               //const newData = await initializeApp();
+               const newDatax = await initializeApp();
                 const newData = appData;
                 setData(newData); 
             } catch (error) {

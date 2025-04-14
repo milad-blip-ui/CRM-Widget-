@@ -254,102 +254,106 @@ export const DEFAULT_CARDS = [
 
 export const appData = {
     "account": {
-        "Owner": {
-            "name": "Mark Woster",
-            "id": "6206560000001168002",
-            "email": "mark@the1source.com"
-        },
-        "Customer_website": null,
-        "Archive": false,
-        "$currency_symbol": "$",
-        "$field_states": null,
-        "Account_Type": null,
-        "Last_Activity_Time": "2025-03-24T03:21:39-04:00",
-        "zohocontracts__Contracts_Counterparty_ID": null,
-        "Industry": null,
-        "$state": "save",
-        "$process_flow": false,
-        "Billing_Country": "India",
-        "TBD": null,
-        "$locked_for_me": false,
-        "id": "6206560000001778136",
-        "$approved": true,
-        "$approval": {
-            "delegate": false,
-            "takeover": false,
-            "approve": false,
-            "reject": false,
-            "resubmit": false
-        },
-        "Billing_Street": "test",
-        "Created_Time": "2024-06-06T04:21:44-04:00",
-        "$editable": true,
-        "Billing_Code": "wretrytuy",
-        "Cycle": null,
-        "Shipping_City": "rsdryftuyg",
-        "Shipping_Country": "India",
-        "Brand": "1Source",
-        "Shipping_Code": "wretrytuy",
-        "Billing_City": "rsdryftuyg",
-        "Give_Portal_Access": true,
-        "Created_By": {
-            "name": "Suman Kumar Jha",
-            "id": "6206560000001643059",
-            "email": "suman@the1source.com"
-        },
-        "Address_Name_Shipping": null,
-        "$zia_owner_assignment": null,
-        "Address_Name_Billing": null,
-        "$is_duplicate": false,
-        "Shipping_same_as_Billing": true,
-        "Shipping_Street": "test",
-        "Annual_revenue_potential": null,
-        "Downpayment": null,
-        "Ownership": null,
-        "Description": "This is a dummy Lead for testing purpose...Please ignore",
-        "Shipping_State": "esdryft",
-        "$review_process": {
-            "approve": false,
-            "reject": false,
-            "resubmit": false
-        },
-        "Vendor_number": "VA-258",
-        "$layout_id": {
-            "name": "Standard",
-            "id": "6206560000000091029"
-        },
-        "Record_Image": null,
-        "Payment_Terms": "Net 0",
-        "Modified_By": {
-            "name": "Amit Soman",
-            "id": "6206560000000462001",
-            "email": "amit@the1source.com"
-        },
-        "$review": null,
-        "Recurring": null,
-        "Phone": "996-096-8129",
-        "Account_Name": "Dummy-101",
-        "Type_of_Portal": "Customer Specific",
-        "Modified_Time": "2025-03-17T13:58:03-04:00",
-        "Territories": null,
-        "Account_sub_type": null,
-        "Credit_limit": null,
-        "$orchestration": false,
-        "Parent_Account": null,
-        "Prospect_Probability": null,
-        "$in_merge": false,
-        "Locked__s": false,
-        "Billing_State": "esdryft",
-        "Lead_Source": null,
-        "Tag": [],
-        "category": [
-            "Cat 1",
-            "cat 2",
-            "Cat 3",
-            "cat 4"
-        ],
-        "$approval_state": "approved",
-        "Account_Name_Search_Phrases": null
+        "data":[
+            {
+                "Owner": {
+                    "name": "Mark Woster",
+                    "id": "6206560000001168002",
+                    "email": "mark@the1source.com"
+                },
+                "Customer_website": null,
+                "Archive": false,
+                "$currency_symbol": "$",
+                "$field_states": null,
+                "Account_Type": null,
+                "Last_Activity_Time": "2025-03-24T03:21:39-04:00",
+                "zohocontracts__Contracts_Counterparty_ID": null,
+                "Industry": null,
+                "$state": "save",
+                "$process_flow": false,
+                "Billing_Country": "India",
+                "TBD": null,
+                "$locked_for_me": false,
+                "id": "6206560000001778136",
+                "$approved": true,
+                "$approval": {
+                    "delegate": false,
+                    "takeover": false,
+                    "approve": false,
+                    "reject": false,
+                    "resubmit": false
+                },
+                "Billing_Street": "test",
+                "Created_Time": "2024-06-06T04:21:44-04:00",
+                "$editable": true,
+                "Billing_Code": "wretrytuy",
+                "Cycle": null,
+                "Shipping_City": "rsdryftuyg",
+                "Shipping_Country": "India",
+                "Brand": "1Source",
+                "Shipping_Code": "wretrytuy",
+                "Billing_City": "rsdryftuyg",
+                "Give_Portal_Access": true,
+                "Created_By": {
+                    "name": "Suman Kumar Jha",
+                    "id": "6206560000001643059",
+                    "email": "suman@the1source.com"
+                },
+                "Address_Name_Shipping": null,
+                "$zia_owner_assignment": null,
+                "Address_Name_Billing": null,
+                "$is_duplicate": false,
+                "Shipping_same_as_Billing": true,
+                "Shipping_Street": "test",
+                "Annual_revenue_potential": null,
+                "Downpayment": null,
+                "Ownership": null,
+                "Description": "This is a dummy Lead for testing purpose...Please ignore",
+                "Shipping_State": "esdryft",
+                "$review_process": {
+                    "approve": false,
+                    "reject": false,
+                    "resubmit": false
+                },
+                "Vendor_number": "VA-258",
+                "$layout_id": {
+                    "name": "Standard",
+                    "id": "6206560000000091029"
+                },
+                "Record_Image": null,
+                "Payment_Terms": "Net 0",
+                "Modified_By": {
+                    "name": "Amit Soman",
+                    "id": "6206560000000462001",
+                    "email": "amit@the1source.com"
+                },
+                "$review": null,
+                "Recurring": null,
+                "Phone": "996-096-8129",
+                "Account_Name": "Dummy-101",
+                "Type_of_Portal": "Customer Specific",
+                "Modified_Time": "2025-03-17T13:58:03-04:00",
+                "Territories": null,
+                "Account_sub_type": null,
+                "Credit_limit": null,
+                "$orchestration": false,
+                "Parent_Account": null,
+                "Prospect_Probability": null,
+                "$in_merge": false,
+                "Locked__s": false,
+                "Billing_State": "esdryft",
+                "Lead_Source": null,
+                "Tag": [],
+                "category": [
+                    "Cat 1",
+                    "cat 2",
+                    "Cat 3",
+                    "cat 4"
+                ],
+                "$approval_state": "approved",
+                "Account_Name_Search_Phrases": null
+            }
+        ]
     },
     "contact": {
         "data": [
