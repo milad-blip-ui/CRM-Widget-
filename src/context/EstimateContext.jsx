@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import React, { createContext, useState, useEffect } from 'react';
 import fetchEstimate from '../services/fetchEstimate';
 import { AppContext } from '../context/AppContext'; 
 import { jsonData } from '../data';
@@ -7,23 +7,17 @@ export const EstimatesContext = createContext();
 
 // Create a Provider Component
 export const EstimatesProvider = ({ children }) => {
-    const { data } = useContext(AppContext);
-    const accountId = data?.account?.id;
 
     const [loading, setLoading] = useState(true);
     const [estimates, setEstimates] = useState([]);
 
     // Fetch estimates
     const fetchEstimates = async () => {
-        if (!accountId) {
-            setLoading(false);
-            return;
-        } 
         try {
             setLoading(true);
             //const newData = await fetchEstimate(accountId);
             const newData = jsonData;
-
+            console.log(newData)
             const parsedData = newData.map(row =>{
                 const result = JSON.parse(row.Estimate_Json);
                 return result.data;
@@ -56,7 +50,7 @@ export const EstimatesProvider = ({ children }) => {
 
     useEffect(() => {
         fetchEstimates();
-    }, [accountId]);
+    }, []);
 
     return (
         <EstimatesContext.Provider value={{ 

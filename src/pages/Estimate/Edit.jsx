@@ -6,6 +6,7 @@ import JoditEditor from 'jodit-react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css'; 
 import CustomDropdown from '../../components/shared/CustomDropdown';
+import AccountDropdown from '..//../components/shared/AccountDropdown';
 import { formatDate } from '../../utils/dateUtils';
 import { PageSpinner } from '../../components/shared/Spinner';
 import updateEstimate from '../../services/updateEstimate';
@@ -28,39 +29,56 @@ function shallowEqual(obj1, obj2) {
 
 const Edit = ({ placeholder }) => {  
   const { id } = useParams();
-  const { data } = useContext(AppContext);
+  const [data, setData] = useState(null);
   const { estimates,fetchEstimates } = useContext(EstimatesContext);
   const navigate = useNavigate();
   const [editSpinner, setEditSpinner] = useState(false);
   const [forceUpdate, setForceUpdate] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [estimateData, setEstimateData] = useState(null);
+  const [loadingCreatorData, setLoadingCreatorData] = useState(true);
+  const [newContactOptions, setNewContactOptions] = useState([]);
+  const [loadingAccountDetails, setLoadingAccountDetails] = useState(false);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const connection = "crmwidgetconnection";
+        const [allProductType, allEmployee] = await Promise.all([
+          window.ZOHO.CRM.CONNECTION.invoke(connection, {
+            parameters: {},
+            headers: {
+              "Content-Type": "application/json",
+            },
+            method: "GET",
+            url: `https://www.zohoapis.com/creator/v2.1/data/sst1source/source-erp/report/All_Product_Types`,
+            param_type: 1,
+          }),
+          window.ZOHO.CRM.CONNECTION.invoke(connection, {
+            parameters: {},
+            headers: {
+              "Content-Type": "application/json",
+            },
+            method: "GET",
+            url: `https://www.zohoapis.com/creator/v2.1/data/sst1source/source-erp/report/All_Employees`,
+            param_type: 1,
+          })
+        ]);
 
-  // Memoize data dependencies
-  const accountData = useMemo(() => ({
-    Account_Name: data?.account?.Account_Name,
-    Vendor_number: data?.account?.Vendor_number,
-    Billing_Street: data?.account?.Billing_Street,
-    Billing_City: data?.account?.Billing_City,
-    Billing_State: data?.account?.Billing_State,
-    Billing_Code: data?.account?.Billing_Code,
-    Shipping_Street: data?.account?.Shipping_Street,
-    Shipping_City: data?.account?.Shipping_City,
-    Shipping_State: data?.account?.Shipping_State,
-    Shipping_Code: data?.account?.Shipping_Code,
-  }), [data?.account]);
+        setData({
+          allProductTypes: allProductType.details.statusMessage,
+          allEmployees: allEmployee.details.statusMessage
+        });
 
-  const addressData = useMemo(() => data?.address?.data || [], [data?.address]);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        toast.error("Failed to load initial data");
+      } finally {
+        setLoadingCreatorData(false);
+      }
+    };
+    fetchData();
+  }, []);
 
-  // Account object for dropdown
-  const accountObject = useMemo(() => (
-    data?.account?.id ? { 
-      value: data.account.id, 
-      label: data.account.Account_Name || 'Unnamed Account' 
-    } : null
-  ), [data?.account]);
-
-  // Fetch estimate data
   useEffect(() => {
     const fetchEstimateData = async () => {
       try {
@@ -112,58 +130,6 @@ const Edit = ({ placeholder }) => {
   const [fetchedData, setFetchedData] = useState([]);
   const [selectedAddress, setSelectedAddress] = useState(null);
 
-  // Prepare address data
-// Prepare address data
-useEffect(() => {
-  if (!accountData.Account_Name && addressData.length === 0) return;
-
-  const newAddressData = [];
-  
-  if (accountData.Account_Name) {
-    const mainAddress = {
-      name: accountData.Account_Name,
-      Billing_Street: accountData.Billing_Street,
-      Billing_City: accountData.Billing_City,
-      Billing_State: accountData.Billing_State,
-      Billing_Code: accountData.Billing_Code,
-      Shipping_Street: accountData.Shipping_Street,
-      Shipping_City: accountData.Shipping_City,
-      Shipping_State: accountData.Shipping_State,
-      Shipping_Code: accountData.Shipping_Code,
-    };
-    newAddressData.push(mainAddress);
-  }
-
-  if (addressData.length > 0) {
-    addressData.forEach(address => {
-      newAddressData.push({
-        name: address.Name,
-        Billing_Street: address.Billing_Street,
-        Billing_City: address.Billing_City,
-        Billing_State: address.Billing_State,
-        Billing_Code: address.Billing_Code,
-        Shipping_Street: address.Shipping_Street,
-        Shipping_City: address.Shipping_City,
-        Shipping_State: address.Shipping_State,
-        Shipping_Code: address.Shipping_Code,
-      });
-    });
-  }
-
-  setFetchedData(prev => shallowEqual(prev, newAddressData) ? prev : newAddressData);
-  
-  // Only set default selected address if not already set from estimate data
-  if (!selectedAddress && newAddressData.length > 0) {
-    // Try to find address matching estimateData.Shipping_Name if available
-    const shippingName = estimateData?.Shipping_Name;
-    const matchingAddr = shippingName 
-      ? newAddressData.find(addr => addr.name === shippingName)
-      : null;
-    
-    setSelectedAddress(matchingAddr || newAddressData[0]);
-  }
-}, [accountData, addressData, estimateData?.Shipping_Name]);
-
   // Handle address selection change
   const handleAddressChange = (selectedName) => {
     const selected = fetchedData.find(addr => addr.name === selectedName);
@@ -192,33 +158,33 @@ useEffect(() => {
   const [formData, setFormData] = useState({
     quoteDate: new Date(),
     quoteName: '',
-    crmAccountName: accountObject?.value,
-    crmAccountNameString: accountObject?.label || '',
+    crmAccountName: '',
+    crmAccountNameString:  '',
     postProduction: '',
     leadTime: '',
     taxRate: '',
-    locationName: accountData.Account_Name || '',
+    locationName: '',
     approver: '',
     approverName: '' ,
     salesperson: '',
     salespersonName: '', // Add this
-    vendorNumber: accountData.Vendor_number || '',
+    vendorNumber: '',
     crmContactName: '',
     internalApprover: '',
     privateNotes: '',
     publicNotes: '',
     isHotJob: '',
     billingAddress: {
-      street: accountData.Billing_Street || '',
-      city: accountData.Billing_City || '',
-      state: accountData.Billing_State || '',
-      zip: accountData.Billing_Code || ''
+      street:  '',
+      city: '',
+      state:  '',
+      zip: ''
     },
     shippingAddress: {
-      street: accountData.Shipping_Street || '',
-      city: accountData.Shipping_City || '',
-      state: accountData.Shipping_State || '',
-      zip: accountData.Shipping_Code || ''
+      street: '',
+      city:  '',
+      state:  '',
+      zip: ''
     }
   });
 
@@ -230,30 +196,30 @@ useEffect(() => {
   const initialFormData = {
     quoteDate: estimateData.Quote_date || new Date(),
     quoteName: estimateData.Quote_name || '',
-    crmAccountName: estimateData.CRM_Account_Name || accountObject?.value,
+    crmAccountName: estimateData.CRM_Account_Name,
     postProduction: estimateData.Post_production || '',
     leadTime: estimateData.Lead_time_from_approval_Days || '',
     taxRate: estimateData.Tax_rate_dropdown || '',
-    locationName: estimateData.Widget_Location_Name || accountData.Account_Name || '',
+    locationName: estimateData.Widget_Location_Name ,
     approver: estimateData.Approver1 || '',
     salesperson: estimateData.Salesperson || '',
-    vendorNumber: estimateData.Vendor_Number || accountData.Vendor_number || '',
+    vendorNumber: estimateData.Vendor_Number || '',
     crmContactName: estimateData.Widget_CRM_Contact_Name || '',
     internalApprover: estimateData.Quote_approval || '',
     privateNotes: estimateData.Private_Notes_RT || '',
     publicNotes: estimateData.Notes_Public_RT || '',
     isHotJob: estimateData.Is_Hot_job || '',
     billingAddress: {
-      street: estimateData.Bill_To?.address_line_1 || accountData.Billing_Street || '',
-      city: estimateData.Bill_To?.district_city || accountData.Billing_City || '',
-      state: estimateData.Bill_To?.state_province || accountData.Billing_State || '',
-      zip: estimateData.Bill_To?.postal_Code || accountData.Billing_Code || ''
+      street: estimateData.Bill_To?.address_line_1 ,
+      city: estimateData.Bill_To?.district_city ,
+      state: estimateData.Bill_To?.state_province ,
+      zip: estimateData.Bill_To?.postal_Code 
     },
     shippingAddress: {
-      street: estimateData.Ship_To?.address_line_2 || accountData.Shipping_Street || '',
-      city: estimateData.Ship_To?.district_city || accountData.Shipping_City || '',
-      state: estimateData.Ship_To?.state_province || accountData.Shipping_State || '',
-      zip: estimateData.Ship_To?.postal_Code || accountData.Shipping_Code || ''
+      street: estimateData.Ship_To?.address_line_2 ,
+      city: estimateData.Ship_To?.district_city ,
+      state: estimateData.Ship_To?.state_province ,
+      zip: estimateData.Ship_To?.postal_Code ,
     },
     crmAccountNameString:estimateData.CRM_Account_Name_String,
     salespersonName: estimateData.SalespersonName,
@@ -261,15 +227,134 @@ useEffect(() => {
   };
 
   setFormData(prev => shallowEqual(prev, initialFormData) ? prev : initialFormData);
-  
-  // Update selected address if estimate has a shipping name
-  if (estimateData.Shipping_Name && fetchedData.length > 0) {
-    const selectedAddr = fetchedData.find(addr => addr.name === estimateData.Shipping_Name);
-    if (selectedAddr) {
-      setSelectedAddress(selectedAddr);
+
+  fetchAccountDetails(estimateData.CRM_Account_Name, estimateData.Shipping_Name);
+}, [estimateData]);
+
+
+const fetchAccountDetails = async (accountId, estimateAddress) => {
+  console.log(accountId, "-",estimateAddress)
+  setLoadingAccountDetails(true);
+  try {
+    // Fetch the account details
+    const accountResponse = await window.ZOHO.CRM.API.getRecord({
+      Entity: "Accounts",
+      RecordID: accountId,
+    });
+    const accountData = accountResponse.data[0];
+
+    if(!estimateAddress){
+      // Update formData with vendor number
+    setFormData(prev => ({
+      ...prev,
+      vendorNumber: accountData.Vendor_number || ''
+    }));
     }
+
+    const addressData = [];
+
+    // Fetch contacts
+    const contactsResponse = await window.ZOHO.CRM.API.getRelatedRecords({
+      Entity: "Accounts",
+      RecordID: accountId,
+      RelatedList: "Contacts",
+    });
+
+    if (!contactsResponse || !contactsResponse.data || !Array.isArray(contactsResponse.data)) {
+      console.warn('No contacts data found or invalid response structure');
+      setNewContactOptions([]); // Set empty array if no data
+    } else {
+      setNewContactOptions(
+        contactsResponse.data
+          .filter(contact => contact.First_Name || contact.Last_Name)
+          .map((contact) => ({
+            value: `${contact.First_Name || ''} ${contact.Last_Name || ''}`.trim(),
+            label: `${contact.First_Name || ''} ${contact.Last_Name || ''}`.trim(),
+          }))
+      );
+    }
+
+    // 1. Get the main account address
+    const mainAddress = {
+      name: accountData?.Account_Name,
+      Billing_Street: accountData?.Billing_Street,
+      Billing_City: accountData?.Billing_City,
+      Billing_State: accountData?.Billing_State,
+      Billing_Code: accountData?.Billing_Code,
+      Shipping_Street: accountData?.Shipping_Street,
+      Shipping_City: accountData?.Shipping_City,
+      Shipping_State: accountData?.Shipping_State,
+      Shipping_Code: accountData?.Shipping_Code,
+    };
+    
+    // Add the main address to the address data
+    addressData.push(mainAddress);  
+    if(!estimateAddress){
+      // Update formData with the main address details
+    setFormData(prev => ({
+      ...prev,
+      locationName: accountData?.Account_Name || '',
+      billingAddress: {
+        street: accountData?.Billing_Street || '',
+        city: accountData?.Billing_City || '',
+        state: accountData?.Billing_State || '',
+        zip: accountData?.Billing_Code || ''
+      },
+      shippingAddress: {
+        street: accountData?.Shipping_Street || '',
+        city: accountData?.Shipping_City || '',
+        state: accountData?.Shipping_State || '',
+        zip: accountData?.Shipping_Code || ''
+      }
+    }));
+    }
+    // Fetch addresses
+    const addressesResponse = await window.ZOHO.CRM.API.getRelatedRecords({
+      Entity: "Accounts",
+      RecordID: accountId,
+      RelatedList: "Address",
+    });
+
+    if (addressesResponse && addressesResponse.data && Array.isArray(addressesResponse.data)) {
+      addressesResponse.data.forEach((address) => {
+        if (address.Name || address.Billing_Street || address.Shipping_Street) {
+          addressData.push({
+            name: address.Name || '',
+            Billing_Street: address.Billing_Street || '',
+            Billing_City: address.Billing_City || '',
+            Billing_State: address.Billing_State || '',
+            Billing_Code: address.Billing_Code || '',
+            Shipping_Street: address.Shipping_Street || '',
+            Shipping_City: address.Shipping_City || '',
+            Shipping_State: address.Shipping_State || '',
+            Shipping_Code: address.Shipping_Code || '',
+          });
+        }
+      });
+    } else {
+      console.warn('No valid addresses data found in response');
+    }
+
+    setFetchedData(addressData);
+
+    // Set the selected address based on the estimate address if provided
+    if (estimateAddress) {
+      const selectedAddr = addressData.find(addr => addr.name === estimateAddress);
+      console.log(selectedAddr)
+      if (selectedAddr) {
+        setSelectedAddress(selectedAddr);
+      }
+    } else {
+      setSelectedAddress(mainAddress); // Use main address by default
+    }
+
+  } catch (error) {
+    console.error("Error:", error);
+    toast.error("Failed to load account details");
+  } finally {
+    setLoadingAccountDetails(false);
   }
-}, [estimateData, accountObject?.value, accountData, fetchedData]);
+};
 
   // Items section
   const [items, setItems] = useState([{
@@ -464,26 +549,15 @@ useEffect(() => {
     { value: "Install", label: "Install" },
     { value: "Unknown", label: "Unknown" }
   ];
-
-  const contactOptions = useMemo(() => 
-    data?.contact?.data?.length 
-      ? data.contact.data.map(contact => ({
-          value: `${contact.First_Name} ${contact.Last_Name}`,
-          label: `${contact.First_Name} ${contact.Last_Name}`,
-        }))
-      : [],
-    [data?.contact?.data]
-  );
-
-  const salesTeam = useMemo(() => 
-    data?.allEmployees?.data
-      ?.filter(employee => employee.Profile?.display_value === "Sales")
-      ?.map(employee => ({
-        value: employee.ID,
-        label: employee.Name_SL || `${employee.Name?.first_name} ${employee.Name?.last_name}`.trim()
-      })) || [],
-    [data?.allEmployees?.data]
-  );
+    const salesTeam = useMemo(() => 
+      data?.allEmployees?.data
+        ?.filter(employee => employee.Profile?.zc_display_value === "Sales")
+        ?.map(employee => ({
+          value: employee.ID,
+          label: employee.Name_SL || `${employee.Name?.first_name} ${employee.Name?.last_name}`.trim()
+        })) || [],
+      [data?.allEmployees?.data]
+    );
   const hasTieredOrOptionItems = useMemo(() => {
     return items.some(item => item.Tiered || item.Option);
   }, [items]);
@@ -839,7 +913,7 @@ useEffect(() => {
            Vendor_Number: formData.vendorNumber,
            Down_Payment: accountingSummary.downPaymentPercent,
            Shipping_Name: formData.locationName,
-           Billing_Name: data?.account?.Account_Name || '',
+           Billing_Name: formData.crmAccountNameString || '',
            Ship_To: { 
              address_line_2: formData.shippingAddress.street,
              district_city: formData.shippingAddress.city,
@@ -911,7 +985,10 @@ useEffect(() => {
   if (isLoading || !estimateData) {
     return <div className="flex justify-center items-center h-64">Loading estimate data...</div>;
   }
-
+ // Render spinner if still loading
+  if (loadingCreatorData) {
+    return <PageSpinner />;
+  }
   return (
     <div className='flex bg-gray-25 items-center w-full'>
       <form onSubmit={handleSubmit} className="p-6 space-y-4 w-full">
@@ -921,21 +998,30 @@ useEffect(() => {
               <label className="input-label">
                 CRM Account <span className="text-red-500">*</span>
               </label>
-              <select
-                name="crmAccountName"
-                className="input-box"
+              <AccountDropdown
                 value={formData.crmAccountName}
-                readOnly
-              >
-                <option>{accountObject?.label}</option>
-              </select>
+                initialLabel={formData.crmAccountNameString} // Pass the account name string
+                onChange={(value, accountName) => {
+                  setFormData(prev => ({
+                    ...prev,
+                    crmAccountName: value,
+                    crmAccountNameString: accountName || ''
+                  }));
+                  // Call your additional function here
+                  fetchAccountDetails(value);
+                }}
+                searchable={true}  // Changed from string "true" to boolean true
+                placeholder="-Select-"
+                className="w-full"
+              />
+
             </div>
             <div className='mt-4'>
               <label className="input-label">
                 CRM Contact
               </label>
               <CustomDropdown
-                options={contactOptions}
+                options={newContactOptions}
                 value={formData.crmContactName}
                 onChange={(value) => setFormData(prev => ({
                   ...prev,
@@ -943,6 +1029,7 @@ useEffect(() => {
                 }))}
                 placeholder="-Select-"
                 className="w-full"
+                disabled={loadingAccountDetails}
               />
             </div>
             <div className="mt-4">
@@ -1078,7 +1165,7 @@ useEffect(() => {
                 type="text"
                 name="vendorNumber"
                 className="input-box"
-                value={data?.account?.Vendor_number || ''}
+                value={formData.vendorNumber}
                 readOnly
                 onChange={() => {}}
               />
@@ -1868,17 +1955,11 @@ useEffect(() => {
         </div>
 
         {/* Form buttons */}
-        {editSpinner && <PageSpinner />}
+        {editSpinner || loadingAccountDetails && <PageSpinner />}
         <div className="flex items-center mt-5 py-2 flex-row gap-3">
           <button type="submit" className="btn">
             <span><i className='fas fa-save mr-2'></i></span> 
             Update
-            {/* {editSpinner && (
-              <svg width="20" height="20" fill="currentColor" className="ml-2 mt-[2px] animate-spin" viewBox="0 0 1792 1792" xmlns="http://www.w3.org/2000/svg">
-                <path d="M526 1394q0 53-37.5 90.5t-90.5 37.5q-52 0-90-38t-38-90q0-53 37.5-90.5t90.5-37.5 90.5 37.5 37.5 90.5zm498 206q0 53-37.5 90.5t-90.5 37.5-90.5-37.5-37.5-90.5 37.5-90.5 90.5-37.5 90.5 37.5 37.5 90.5zm-704-704q0 53-37.5 90.5t-90.5 37.5-90.5-37.5-37.5-90.5 37.5-90.5 90.5-37.5 90.5 37.5 37.5 90.5zm1202 498q0 52-38 90t-90 38q-53 0-90.5-37.5t-37.5-90.5 37.5-90.5 90.5-37.5 90.5 37.5 37.5 90.5zm-964-996q0 66-47 113t-113 47-113-47-47-113 47-113 113-47 113 47 47 113zm1170 498q0 53-37.5 90.5t-90.5 37.5-90.5-37.5-37.5-90.5 37.5-90.5 90.5-37.5 90.5 37.5 37.5 90.5zm-640-704q0 80-56 136t-136 56-136-56-56-136 56-136 136-56 136 56 56 136zm530 206q0 93-66 158.5t-158 65.5q-93 0-158.5-65.5t-65.5-158.5q0-92 65.5-158t158.5-66q92 0 158 66t66 158z">
-                </path>
-              </svg>
-            )} */}
           </button>
           
           <button type='button' 

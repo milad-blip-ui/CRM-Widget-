@@ -2,16 +2,17 @@ import React, { useState, useContext, useEffect } from "react";
 import { DEFAULT_CARDS } from '../../data';
 import Column from "../../components/kanban/Column";
 import { EstimatesContext } from '../../context/EstimateContext';
+import { Link } from "react-router-dom";
 
 const Estimate = () => {
-  const [cards, setCards] = useState([]);
-  //const [cards, setCards] = useState(DEFAULT_CARDS);
-  const { estimates } = useContext(EstimatesContext);
+  //const [cards, setCards] = useState([]);
+  const [cards, setCards] = useState(DEFAULT_CARDS);
+  //const { estimates } = useContext(EstimatesContext);
 
-  useEffect(() => {
-    setCards(estimates);
-  }, [estimates]);
-  console.log("estimate in index page", cards);
+  // useEffect(() => {
+  //   setCards(estimates);
+  // }, [estimates]);
+  // console.log("estimate in index page", cards);
 
   return (
     <div className="flex gap-3 overflow-auto h-[642px] p-3">

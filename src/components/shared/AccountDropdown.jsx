@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 
 // Debounce hook
 const useDebounce = (value, delay) => {
@@ -60,7 +60,8 @@ const AccountDropdown = ({
   onChange,
   placeholder = "Select...",
   searchable = false,
-  className = ""
+  className = "",
+  initialLabel = "" // Add this prop
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -71,12 +72,25 @@ const AccountDropdown = ({
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [hasFetchedInitialData, setHasFetchedInitialData] = useState(false);
-  
   const triggerRef = useRef(null);
   const dropdownRef = useRef(null);
   const optionsListRef = useRef(null);
+  const lastSelectedValue = useRef(null);
+  
+  // State to determine if user has made a selection
+  const userSelectionMade = useRef(false);
 
-  // Fetch accounts with debounce
+  // useEffect to manage the initial label and value
+  useEffect(() => {
+    if (value && initialLabel && !userSelectionMade.current) {
+      setOptions(prev => {
+        // Don't add if already exists
+        if (prev.some(opt => opt.value === value)) return prev;
+        return [{ value, label: initialLabel }, ...prev];
+      });
+    }
+  }, [value, initialLabel]);
+
   const fetchAccountsData = useCallback(async (reset = false) => {
     if (!isOpen) return;
     
@@ -84,14 +98,20 @@ const AccountDropdown = ({
     try {
       const newPage = reset ? 1 : page;
       const response = await fetchAccounts(debouncedSearchTerm, newPage, 10);
+      let newOptions = response.data;
       
+      if (reset && !userSelectionMade.current && value && initialLabel && 
+          !response.data.some(opt => opt.value === value)) {
+        newOptions = [{ value, label: initialLabel }, ...response.data];
+      }
+
       if (reset) {
-        setOptions(response.data);
+        setOptions(newOptions);
         setPage(1);
       } else {
-        setOptions(prev => [...prev, ...response.data]);
+        setOptions(prev => [...prev, ...newOptions]);
       }
-      
+
       setHasMore(response.hasMore);
       if (reset && !debouncedSearchTerm) {
         setHasFetchedInitialData(true);
@@ -101,9 +121,8 @@ const AccountDropdown = ({
     } finally {
       setLoading(false);
     }
-  }, [isOpen, debouncedSearchTerm, page]);
+  }, [isOpen, debouncedSearchTerm, page, value, initialLabel]);
 
-  // Infinite scroll handler
   const handleScroll = useCallback(() => {
     if (!optionsListRef.current || loading || !hasMore) return;
     
@@ -113,7 +132,6 @@ const AccountDropdown = ({
     }
   }, [loading, hasMore]);
 
-  // Position calculation
   const updatePosition = () => {
     if (triggerRef.current) {
       const rect = triggerRef.current.getBoundingClientRect();
@@ -125,7 +143,6 @@ const AccountDropdown = ({
     }
   };
 
-  // Toggle dropdown
   const toggleDropdown = () => {
     if (!isOpen) {
       updatePosition();
@@ -139,14 +156,16 @@ const AccountDropdown = ({
     setIsOpen(!isOpen);
   };
 
-  // Option selection
   const handleSelect = (val, label) => {
-    onChange(val, label); // Now passes both value and label
+    userSelectionMade.current = true;
+    lastSelectedValue.current = { value: val, label };
+    onChange(val, label);
     setIsOpen(false);
     setSearchTerm("");
+    // Clear initial label from options after selection
+    setOptions(prev => prev.filter(option => option.value !== value));
   };
 
-  // Click outside handler
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target) &&
@@ -161,7 +180,6 @@ const AccountDropdown = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isOpen]);
 
-  // Body scroll lock
   useEffect(() => {
     if (isOpen) {
       document.body.classList.add('dropdown-open');
@@ -179,21 +197,18 @@ const AccountDropdown = ({
     };
   }, [isOpen]);
 
-  // Fetch data when dropdown opens or search term changes
   useEffect(() => {
     if (isOpen && (!hasFetchedInitialData || debouncedSearchTerm)) {
       fetchAccountsData(true);
     }
   }, [isOpen, debouncedSearchTerm]);
 
-  // Infinite scroll load more
   useEffect(() => {
     if (page > 1) {
       fetchAccountsData();
     }
   }, [page]);
 
-  // Add scroll listener
   useEffect(() => {
     const listElement = optionsListRef.current;
     if (listElement && isOpen) {
@@ -202,11 +217,23 @@ const AccountDropdown = ({
     }
   }, [isOpen, handleScroll]);
 
-  const selectedOption = options.find(opt => opt.value === value);
+  const selectedOption = useMemo(() => {
+    const foundOption = options.find(opt => opt.value === value);
+    if (foundOption) return foundOption;
+
+    if (lastSelectedValue.current) {
+      return lastSelectedValue.current;
+    }
+    
+    if (value && initialLabel && !userSelectionMade.current) {
+      return { value, label: initialLabel };
+    }
+
+    return null;
+  }, [options, value, initialLabel]);
 
   return (
     <div className={`relative ${className} text-sm text-gray-600 bg-white`} ref={triggerRef}>
-      {/* Trigger */}
       <div
         className={`flex items-center justify-between p-2 px-3 border rounded-md cursor-pointer ${isOpen ? 'border-indigo-500 ring-1 ring-indigo-500' : 'border-gray-300'}`}
         onClick={toggleDropdown}
@@ -217,7 +244,6 @@ const AccountDropdown = ({
         <i className={`fa-solid fa-chevron-down text-xs`}></i>
       </div>
 
-      {/* Dropdown */}
       {isOpen && (
         <div className="fixed inset-0 z-[1000] pointer-events-none">
           <div 
@@ -231,7 +257,6 @@ const AccountDropdown = ({
               overflow: 'hidden'
             }}
           >
-            {/* Search Input */}
             {searchable && (
               <div className="p-2 border-b">
                 <div className="relative">
@@ -258,7 +283,6 @@ const AccountDropdown = ({
               </div>
             )}
 
-            {/* Options List */}
             <div 
               ref={optionsListRef}
               className="max-h-60 overflow-y-auto"
@@ -279,16 +303,16 @@ const AccountDropdown = ({
                   ))}
                   {loading && (
                     <div className="px-4 py-2 text-gray-500 flex items-center justify-center">
-                    {loading ? <div className="w-3 h-3 rounded-full animate-l5"></div> : 'No options found'}
-                  </div>
+                      <div className="w-3 h-3 rounded-full animate-l5"></div>
+                    </div>
                   )}
                 </>
               ) : (
                 <div className="px-4 py-2 text-gray-500">
                   {loading ? (
                     <div className="px-4 py-2 text-gray-500 flex items-center justify-center">
-                    {loading ? <div className="w-3 h-3 rounded-full animate-l5"></div> : 'No options found'}
-                  </div>
+                      <div className="w-3 h-3 rounded-full animate-l5"></div>
+                    </div>
                   ) : (
                     'No accounts found'
                   )}
