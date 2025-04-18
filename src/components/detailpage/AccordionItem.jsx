@@ -1,5 +1,5 @@
 import React from 'react'
-import Card from '../kanban/Card';
+import KanbanCard from '../kanban/KanbanCard';
 
 const AccordionItem = ({ title, isOpen, onToggle, records, currentActiveId }) => {
     return (
@@ -17,7 +17,7 @@ const AccordionItem = ({ title, isOpen, onToggle, records, currentActiveId }) =>
                         records.map((record) => (
                             // Conditionally add a class based on whether the record is the current active one
                             <div key={record.ID} className={`${currentActiveId === record.ID ? ' border-indigo-500 border-b-[2px] rounded-lg' : 'border-transparent'} mb-2`}>
-                                <Card card={record} />
+                                <KanbanCard item={record} />
                             </div>
                         ))
                     ) : (

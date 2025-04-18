@@ -1,4 +1,4 @@
-const updateEstimate = async (estimateId,payload, customerAttachments, privateAttachments) => {
+const updateEstimate = async (estimateId, payload, customerAttachments, privateAttachments) => {
   try {
     const connection = "crmwidgetconnection";
     // Make API call to Zoho Creator

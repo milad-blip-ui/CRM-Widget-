@@ -1,13 +1,14 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState,useContext } from "react";
 import { Link, useLocation } from "react-router-dom"; 
-import { useSidebar } from "../context/SidebarContext";  
+import { useSidebar } from "../context/SidebarContext"; 
+import { AppContext } from "../context/AppContext";  
 //import Cart from "../components/header/Cart"
  import UserDropdown from "../components/header/UserDropdown";
 
 const AppHeader = () => {
   const [isApplicationMenuOpen, setApplicationMenuOpen] = useState(false);
   const { isMobileOpen, toggleSidebar, toggleMobileSidebar } = useSidebar();
-
+const {showSearchPanel, setShowSearchPanel } = useContext(AppContext);
   const handleToggle = () => {
     if (window.innerWidth >= 991) {
       toggleSidebar();
@@ -170,7 +171,9 @@ const AppHeader = () => {
           </div>
           {/* <UserDropdown /> */}
           <div className="flex items-center gap-4">
-          <span className="border border-gray-100 px-1 hover:bg-gray-50 cursor-pointer"><i className="fa-sharp fa-solid fa-magnifying-glass"></i></span>
+
+          <button onClick={()=> setShowSearchPanel(!showSearchPanel)} className="border border-gray-100 px-1 hover:bg-gray-50 cursor-pointer"><i className="fa-sharp fa-solid fa-magnifying-glass"></i></button>
+
           <Link to={linkDestination()} className="border border-gray-100 px-[5px] cursor-pointer bg-brand-600 hover:bg-brand-700 text-white"><i className="fa-sharp fa-solid fa-plus"></i></Link>
           <span className="border border-gray-100 px-[5px] hover:bg-gray-50 cursor-pointer"><i className="fa-solid fa-bars"></i></span>
           

@@ -1,17 +1,104 @@
 
 export const DEFAULT_CARDS = [
   {
-      "Quote": "QT-2503072",
-      "Status": "",
-      "Account_Name_String": "",
-      "CRM_Contact_Name": "",
-      "Total": "4.00",
-      "Sub_Total": "4.00",
-      "Quote_date": "07-Mar-2025",
-      "Final_Estimate": "/api/v2/sst1source/source-erp/report/All_Estimates_List_view/4599841000004139037/Final_Estimate/download?filepath=1741343030578_QT-2503072.pdf",
-      "ID": "4599841000004139037",
-      "Quote_name": "Delweb 55",
-      "Salesperson": ""
+    "Tax_rate_dropdown": "0%",
+    "Quote_name": "rafi new 2222",
+    "Status": "Draft",
+    "Source": "Widget",
+    "Quote_approval": "yes",
+    "Approver1": "4599841000001551027",
+    "Post_production": "Dropship",
+    "CRM_Account_Name": "6206560000001778136",
+    "Lead_time_from_approval_Days": "2",
+    "Salesperson": "4599841000001551027",
+    "Quote_date": "15-Apr-2025",
+    "Widget_CRM_Contact_Name": "Andika Pradana",
+    "Widget_Location_Name": "farzan test",
+    "Vendor_Number": "VA-258",
+    "Down_Payment": 0,
+    "Shipping_Name": "farzan test",
+    "Billing_Name": "Dummy-101",
+    "Ship_To": {
+      "address_line_2": "Sh",
+      "district_city": "Kabul",
+      "state_province": "Kabul",
+      "postal_Code": "1005"
+    },
+    "Bill_To": {
+      "address_line_1": "new",
+      "postal_Code": "1005",
+      "district_city": "Kabul",
+      "state_province": "Kabul"
+    },
+    "Notes_Public_RT": "<p><span style=\"color: rgb(0, 0, 255);\">far</span></p>",
+    "Private_Notes_RT": "<p><span style=\"background-color: rgb(0, 240, 240);\">dsd</span></p>",
+    "Is_Hot_job": "Yes",
+    "Item_Details": [
+      {
+        "id": 1,
+        "Item": "iteam a",
+        "Qty": "1",
+        "Unit": "Feet",
+        "Description_Rich_Text": "<p><span style=\"background-color: rgb(255, 0, 0);\">farzan&nbsp;</span></p>",
+        "Tiered": false,
+        "Option": false,
+        "Product_Type1": "4599841000000968055",
+        "Piece_cost": "100",
+        "Margin": "10",
+        "piecePrice": "110.00",
+        "amount": "110.00",
+        "Product_Type_Name": "Digital Marketing",
+        "isPieceCostFocused": false,
+        "isMarkupFocused": false
+      },
+      {
+        "id": 2,
+        "Item": "ti b",
+        "Qty": "1",
+        "Unit": "Each",
+        "Description_Rich_Text": "<p><span style=\"color: rgb(255, 153, 0);\">da</span></p>",
+        "Tiered": false,
+        "Option": false,
+        "Product_Type1": "4599841000000968051",
+        "Piece_cost": "100",
+        "Margin": "20",
+        "piecePrice": "120.00",
+        "amount": "120.00",
+        "isPieceCostFocused": false,
+        "isMarkupFocused": false,
+        "Product_Type_Name": "Packing & Kitting"
+      }
+    ],
+    "Reference_URL": [
+      { "Url": { "url": "http://www.google.com" }, "Description": "farzan" }
+    ],
+    "Accounting_Summary": {
+      "totalCost": "200.00",
+      "subTotal": "230.00",
+      "jobProfit": "30.00",
+      "jobProfitPercent": "13.04",
+      "salesTax": "0.00",
+      "total": "230.00",
+      "pastDue": 0,
+      "downPaymentPercent": 0,
+      "downPaymentAmount": "0.00",
+      "creditLimit": 0,
+      "balanceDue": "230.00",
+      "totalReceivable": "230.00",
+      "taxableAmount": "0.00"
+    },
+    "Customer_Attachments": [
+      { "file": null, "fileDescription": "", "fileName": "" }
+    ],
+    "Private_Attachments": [
+      { "file": null, "fileDescription": "", "fileName": "" }
+    ],
+    "CRM_Account_Name_String": "Dummy-101",
+    "SalespersonName": "Rafi Nikzad",
+    "ApproverName": "Rafi Nikzad",
+    "Quote_Rev_int": null,
+    "ID": "3973593132856002560",
+    "Quote": "QT-25041522"
   },
   {
       "Quote": "QT-25030625",
@@ -3447,7 +3534,7 @@ export const appData = {
 
 export const jsonData = [
     {
-         "Estimate_Json": "{\"data\":{\"Tax_rate_dropdown\":\"0%\",\"Quote_name\":\"rafi new 2222\",\"Status\":\"Draft\",\"Source\":\"Widget\",\"Quote_approval\":\"yes\",\"Approver1\":\"4599841000001551027\",\"Post_production\":\"Dropship\",\"CRM_Account_Name\":\"6206560000001778136\",\"Lead_time_from_approval_Days\":\"2\",\"Salesperson\":\"4599841000001551027\",\"Quote_date\":\"15-Apr-2025\",\"Widget_CRM_Contact_Name\":\"Andika Pradana\",\"Widget_Location_Name\":\"farzan test\",\"Vendor_Number\":\"VA-258\",\"Down_Payment\":0,\"Shipping_Name\":\"farzan test\",\"Billing_Name\":\"Dummy-101\",\"Ship_To\":{\"address_line_2\":\"Sh\",\"district_city\":\"Kabul\",\"state_province\":\"Kabul\",\"postal_Code\":\"1005\"},\"Bill_To\":{\"address_line_1\":\"new\",\"postal_Code\":\"1005\",\"district_city\":\"Kabul\",\"state_province\":\"Kabul\"},\"Notes_Public_RT\":\"<p><span style=\\\"color: rgb(0, 0, 255);\\\">far<\\/span><\\/p>\",\"Private_Notes_RT\":\"<p><span style=\\\"background-color: rgb(0, 240, 240);\\\">dsd<\\/span><\\/p>\",\"Is_Hot_job\":\"Yes\",\"Item_Details\":[{\"id\":1,\"Item\":\"iteam a\",\"Qty\":\"1\",\"Unit\":\"Feet\",\"Description_Rich_Text\":\"<p><span style=\\\"background-color: rgb(255, 0, 0);\\\">farzan&nbsp;<\\/span><\\/p>\",\"Tiered\":false,\"Option\":false,\"Product_Type1\":\"4599841000000968055\",\"Piece_cost\":\"100\",\"Margin\":\"10\",\"piecePrice\":\"110.00\",\"amount\":\"110.00\",\"Product_Type_Name\":\"Digital Marketing\",\"isPieceCostFocused\":false,\"isMarkupFocused\":false},{\"id\":2,\"Item\":\"ti b\",\"Qty\":\"1\",\"Unit\":\"Each\",\"Description_Rich_Text\":\"<p><span style=\\\"color: rgb(255, 153, 0);\\\">da<\\/span><\\/p>\",\"Tiered\":false,\"Option\":false,\"Product_Type1\":\"4599841000000968051\",\"Piece_cost\":\"100\",\"Margin\":\"20\",\"piecePrice\":\"120.00\",\"amount\":\"120.00\",\"isPieceCostFocused\":false,\"isMarkupFocused\":false,\"Product_Type_Name\":\"Packing & Kitting\"}],\"Reference_URL\":[{\"Url\":{\"url\":\"http://www.google.com\"},\"Description\":\"farzan\"}],\"Accounting_Summary\":{\"totalCost\":\"200.00\",\"subTotal\":\"230.00\",\"jobProfit\":\"30.00\",\"jobProfitPercent\":\"13.04\",\"salesTax\":\"0.00\",\"total\":\"230.00\",\"pastDue\":0,\"downPaymentPercent\":0,\"downPaymentAmount\":\"0.00\",\"creditLimit\":0,\"balanceDue\":\"230.00\",\"totalReceivable\":\"230.00\",\"taxableAmount\":\"0.00\"},\"Customer_Attachments\":[{\"file\":null,\"fileDescription\":\"\",\"fileName\":\"\"}],\"Private_Attachments\":[{\"file\":null,\"fileDescription\":\"\",\"fileName\":\"\"}],\"CRM_Account_Name_String\":\"Dummy-101\",\"SalespersonName\":\"Rafi Nikzad\",\"ApproverName\":\"Rafi Nikzad\",\"Quote_Rev_int\":null,\"ID\":\"4599841000005077063\",\"Quote\":\"QT-25041522\"}}"
+         "Estimate_Json": "{\"data\":{\"Tax_rate_dropdown\":\"0%\",\"Quote_name\":\"rafi new 2222\",\"Status\":\"Draft\",\"Source\":\"Widget\",\"Quote_approval\":\"yes\",\"Approver1\":\"4599841000001551027\",\"Post_production\":\"Dropship\",\"CRM_Account_Name\":\"6206560000001778136\",\"Lead_time_from_approval_Days\":\"2\",\"Salesperson\":\"4599841000001551027\",\"Quote_date\":\"15-Apr-2025\",\"Widget_CRM_Contact_Name\":\"Andika Pradana\",\"Widget_Location_Name\":\"farzan test\",\"Vendor_Number\":\"VA-258\",\"Down_Payment\":0,\"Shipping_Name\":\"farzan test\",\"Billing_Name\":\"Dummy-101\",\"Ship_To\":{\"address_line_2\":\"Sh\",\"district_city\":\"Kabul\",\"state_province\":\"Kabul\",\"postal_Code\":\"1005\"},\"Bill_To\":{\"address_line_1\":\"new\",\"postal_Code\":\"1005\",\"district_city\":\"Kabul\",\"state_province\":\"Kabul\"},\"Notes_Public_RT\":\"<p><span style=\\\"color: rgb(0, 0, 255);\\\">far<\\/span><\\/p>\",\"Private_Notes_RT\":\"<p><span style=\\\"background-color: rgb(0, 240, 240);\\\">dsd<\\/span><\\/p>\",\"Is_Hot_job\":\"Yes\",\"Item_Details\":[{\"id\":1,\"Item\":\"iteam a\",\"Qty\":\"1\",\"Unit\":\"Feet\",\"Description_Rich_Text\":\"<p><span style=\\\"background-color: rgb(255, 0, 0);\\\">farzan&nbsp;<\\/span><\\/p>\",\"Tiered\":false,\"Option\":false,\"Product_Type1\":\"4599841000000968055\",\"Piece_cost\":\"100\",\"Margin\":\"10\",\"piecePrice\":\"110.00\",\"amount\":\"110.00\",\"Product_Type_Name\":\"Digital Marketing\",\"isPieceCostFocused\":false,\"isMarkupFocused\":false},{\"id\":2,\"Item\":\"ti b\",\"Qty\":\"1\",\"Unit\":\"Each\",\"Description_Rich_Text\":\"<p><span style=\\\"color: rgb(255, 153, 0);\\\">da<\\/span><\\/p>\",\"Tiered\":false,\"Option\":false,\"Product_Type1\":\"4599841000000968051\",\"Piece_cost\":\"100\",\"Margin\":\"20\",\"piecePrice\":\"120.00\",\"amount\":\"120.00\",\"isPieceCostFocused\":false,\"isMarkupFocused\":false,\"Product_Type_Name\":\"Packing & Kitting\"}],\"Reference_URL\":[{\"Url\":{\"url\":\"http://www.google.com\"},\"Description\":\"farzan\"}],\"Accounting_Summary\":{\"totalCost\":\"200.00\",\"subTotal\":\"230.00\",\"jobProfit\":\"30.00\",\"jobProfitPercent\":\"13.04\",\"salesTax\":\"0.00\",\"total\":\"230.00\",\"pastDue\":0,\"downPaymentPercent\":0,\"downPaymentAmount\":\"0.00\",\"creditLimit\":0,\"balanceDue\":\"230.00\",\"totalReceivable\":\"230.00\",\"taxableAmount\":\"0.00\"},\"Customer_Attachments\":[{\"file\":null,\"fileDescription\":\"\",\"fileName\":\"\"}],\"Private_Attachments\":[{\"file\":null,\"fileDescription\":\"\",\"fileName\":\"\"}],\"CRM_Account_Name_String\":\"Dummy-101\",\"SalespersonName\":\"Rafi Nikzad\",\"ApproverName\":\"Rafi Nikzad\",\"Quote_Rev_int\":null,\"ID\":\"3973593132856002560\",\"Quote\":\"QT-25041522\"}}"
          
     }
 ]
