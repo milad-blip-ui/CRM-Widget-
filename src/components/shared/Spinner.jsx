@@ -1,7 +1,7 @@
 import './loader.css'
 export const AppSpinner = () => {
   return (
-    <div className='fixed inset-0 z-50 flex items-center justify-center bg-[#1a0526] font-poppins'>
+    <div className='fixed inset-0 z-99999 flex items-center justify-center bg-[#1a0526] font-poppins'>
       <div className="text-center w-[90%] max-w-[500px] p-[30px] bg-[#1a0526] rounded-[20px] backdrop-blur-[10px] animate-[fadeIn_0.8s_ease-out]">
         <h1 className="text-[2.5rem] mb-[10px] bg-gradient-to-r from-[#b76cfd] to-[#ff7ff5] bg-clip-text text-transparent [text-shadow:0_2px_10px_rgba(183,108,253,0.3)] font-bold">
           Creator Pro
@@ -29,7 +29,7 @@ export const AppSpinner = () => {
 
 export const PageSpinner = () => {
   return (
-    <div className='fixed inset-0 z-50 flex items-center justify-center'>
+    <div className='fixed inset-0 z-999999 flex items-center justify-center'>
       <div className='loader'></div>
     </div>
   )

@@ -34,7 +34,7 @@ function shallowEqual(obj1, obj2) {
 const Edit = ({ placeholder }) => {
   const { id } = useParams();
   const [data, setData] = useState(null);
-  const { allItems } = useContext(AppContext);
+  const { allItems, updateEstimateById } = useContext(AppContext);
   const navigate = useNavigate();
   const [editSpinner, setEditSpinner] = useState(false);
   const [forceUpdate, setForceUpdate] = useState(false);
@@ -85,7 +85,6 @@ const Edit = ({ placeholder }) => {
   useEffect(() => {
     const fetchEstimateData = async () => {
       try {
-        console.log("Estiamte EditPage", allItems);
         const estimate = allItems.find((item) => {
           return item.ID === id;
         });
@@ -588,8 +587,8 @@ const Edit = ({ placeholder }) => {
   ];
 
   const internalApproverOptions = [
-    { value: "yes", label: "Yes" },
-    { value: "no", label: "No" },
+    { value: "Yes", label: "Yes" },
+    { value: "No", label: "No" },
   ];
 
   const postProductionOptions = [
@@ -1075,8 +1074,8 @@ const Edit = ({ placeholder }) => {
       );
       if (result.data) {
         toast.success("Updated successfully!");
-        // await fetchEstimates();
-        // navigate('/');
+        updateEstimateById(id);
+        navigate('/');
       } else {
         console.error("Failed to update estimate:", result);
         toast.error("Failed to update estimate. Please try again.");
@@ -1253,7 +1252,7 @@ const Edit = ({ placeholder }) => {
                 className="w-full"
               />
             </div>
-            {formData.internalApprover === "yes" && (
+            {formData.internalApprover === "Yes" && (
               <div className="mt-4">
                 <label className="input-label">
                   Approver <span className="text-red-500">*</span>
@@ -1511,26 +1510,25 @@ const Edit = ({ placeholder }) => {
                   />
                 </div>
                 <div className="w-28">
-                  <select
-                    className="input-box"
+                <div className="w-28">
+                  <CustomDropdown
+                    options={unitOptions.map((option) => ({
+                      value: option,
+                      label: option,
+                    }))}
                     value={item.Unit}
-                    onChange={(e) =>
+                    onChange={(value) =>
                       setItems(
                         items.map((i) =>
-                          i.id === item.id ? { ...i, Unit: e.target.value } : i
+                          i.id === item.id ? { ...i, Unit: value } : i
                         )
                       )
                     }
-                  >
-                    <option value="" disabled>
-                      -Select-
-                    </option>
-                    {unitOptions.map((option, idx) => (
-                      <option key={idx} value={option}>
-                        {option}
-                      </option>
-                    ))}
-                  </select>
+                    placeholder="-Select-"
+                    className="w-full" // or your preferred width
+                    searchable={false} // Since these are predefined units
+                  />
+                </div>
                 </div>
                 <div className="w-20">
                   <button

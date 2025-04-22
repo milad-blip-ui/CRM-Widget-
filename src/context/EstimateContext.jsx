@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect } from 'react';
-import fetchEstimate from '../services/fetchEstimate';
+//import fetchEstimate from '../services/fetchEstimate';
 import { AppContext } from '../context/AppContext'; 
 import { jsonData } from '../data';
 // Create a Context

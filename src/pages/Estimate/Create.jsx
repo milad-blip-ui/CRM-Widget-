@@ -9,11 +9,11 @@ import AccountDropdown from "../../components/shared/AccountDropdown";
 import { formatDate } from "../../utils/dateUtils";
 import createEstimate from "../../services/createEstimate";
 import { PageSpinner } from "../../components/shared/Spinner";
-import { EstimatesContext } from "../../context/EstimateContext";
+import { AppContext } from "../../context/AppContext";
 
 const Create = ({ placeholder }) => {
   const [data, setData] = useState(null);
-  const { fetchEstimates } = useContext(EstimatesContext);
+  const { addEstimateById } = useContext(AppContext);
   const navigate = useNavigate();
   const [createSpinner, setCreateSpinner] = useState(false);
   const [forceUpdate, setForceUpdate] = useState(false);
@@ -72,8 +72,8 @@ const Create = ({ placeholder }) => {
 
   // 1. Define your options array
   const internalApproverOptions = [
-    { value: "yes", label: "Yes" },
-    { value: "no", label: "No" },
+    { value: "Yes", label: "Yes" },
+    { value: "No", label: "No" },
     // Add other options if needed
   ];
 
@@ -1018,10 +1018,11 @@ const Create = ({ placeholder }) => {
         privateAttachments
       );
       if (result.data) {
+        console.log('xx',result.data)
         toast.success("Record created successfully!");
         resetFormToDefault();
-        // await fetchEstimates();
-        // navigate('/');
+        addEstimateById(result.data?.ID)
+         navigate('/');
       } else {
         // Log the result in case of failure for debugging
         console.error("Failed to create record:", result);
@@ -1200,7 +1201,7 @@ const Create = ({ placeholder }) => {
               />
             </div>
             {/* Conditionally render Approver dropdown if internalApprover is "yes" */}
-            {formData.internalApprover === "yes" && (
+            {formData.internalApprover === "Yes" && (
               <div className="mt-4">
                 <label className="input-label">
                   Approver <span className="text-red-500">*</span>

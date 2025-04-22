@@ -11,7 +11,7 @@ const updateEstimate = async (estimateId, payload, customerAttachments, privateA
       param_type: 2,
     })
     //Estimate_2_0_Report
-    
+    console.log("update response",response);
     if(response.details.statusMessage.code === 3000){
       console.log("Main record response", response.details.statusMessage);
       return response.details.statusMessage;

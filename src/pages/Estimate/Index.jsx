@@ -2,7 +2,9 @@ import { useState, useEffect, useMemo, useContext, useCallback } from 'react';
 import { AppContext } from '../../context/AppContext';
 import KanbanCard from '../../components/kanban/KanbanCard';
 import QuoteFilter from '../../components/shared/QuoteFilter';
-
+import updateEstimateStatus from '../../services/updateEstimateStatus';
+import { PageSpinner } from '../../components/shared/Spinner';
+import toast from 'react-hot-toast';
 const statuses = [
   'Draft',
   'Sent for approval',
@@ -31,8 +33,10 @@ const saveFilters = (filters) => {
 };
 const KanbanBoard = () => {
   const { allItems, loading, error, updateItemStatus, showSearchPanel, setShowSearchPanel } = useContext(AppContext);
-  //console.log("al item",allItems)
+  const [statusSpinner, setStatusSpinner] = useState(false);
+
   const [activeFilters, setActiveFilters] = useState(loadFilters());
+
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') setShowSearchPanel(false);
@@ -206,51 +210,66 @@ const KanbanBoard = () => {
     setDraggedOverColumn(null);
   };
 
-  const handleDrop = (e, targetStatus) => {
+  const handleDrop = async (e, targetStatus) => {
     e.preventDefault();
-    const itemId = e.dataTransfer.getData('text/plain');
-    
-    if (targetStatus !== draggedItem?.Status) {
-      updateItemStatus(itemId, targetStatus);
-      
-      const movedItem = filteredAndSortedItems.find(item => item.ID === itemId);
-      
-      if (movedItem) {
-        const updatedItem = {
-          ...movedItem,
-          Status: targetStatus,
-          UpdatedAt: new Date().toISOString()
-        };
+    toast.error("Move is disabled.");
+    return;
+    // if(targetStatus === "Sent to customer"){
+    //   alert("modal");
+    // }
+  // try {
+  //   const itemId = e.dataTransfer.getData("text/plain");
+  //   console.log("draggedItem", draggedItem);
+  //   console.log(targetStatus);
+  //   setStatusSpinner(true);
+  //   const response = await updateEstimateStatus(itemId, draggedItem, targetStatus);
+  //   if(response.ID){
+  //     if (targetStatus !== draggedItem?.Status) {
+  //       updateItemStatus(itemId, targetStatus);
         
-        console.log('Card moved:', {
-          previousStatus: movedItem.Status,
-          newStatus: targetStatus,
-          cardDetails: updatedItem
-        });
-      }
-    }
-    
-    setDraggedOverColumn(null);
-    setDraggedItem(null);
-    
-    setVisibleItems(prev => {
-      const newVisible = { ...prev };
+  //       const movedItem = filteredAndSortedItems.find(item => item.ID === itemId);
+        
+  //       if (movedItem) {
+         
+  //         const updatedItem = {
+  //           ...movedItem,
+  //           Status: targetStatus,
+  //         };
+          
+  //         console.log('Card moved:', updatedItem);
+  //       }
+  //     }
       
-      statuses.forEach(status => {
-        if (newVisible[status]) {
-          newVisible[status] = newVisible[status].filter(item => item.ID !== itemId);
-        }
-      });
+  //     setDraggedOverColumn(null);
+  //     setDraggedItem(null);
       
-      const movedItem = filteredAndSortedItems.find(item => item.ID === itemId);
-      if (movedItem) {
-        const updatedItem = { ...movedItem, Status: targetStatus };
-        const newColumnItems = [...(newVisible[targetStatus] || []), updatedItem];
-        newVisible[targetStatus] = sortItems(newColumnItems).slice(0, 20);
-      }
-      
-      return newVisible;
-    });
+  //     setVisibleItems(prev => {
+  //       const newVisible = { ...prev };
+        
+  //       statuses.forEach(status => {
+  //         if (newVisible[status]) {
+  //           newVisible[status] = newVisible[status].filter(item => item.ID !== itemId);
+  //         }
+  //       });
+        
+  //       const movedItem = filteredAndSortedItems.find(item => item.ID === itemId);
+  //       if (movedItem) {
+  //         const updatedItem = { ...movedItem, Status: targetStatus };
+  //         const newColumnItems = [...(newVisible[targetStatus] || []), updatedItem];
+  //         newVisible[targetStatus] = sortItems(newColumnItems).slice(0, 20);
+  //       }
+        
+  //       return newVisible;
+  //     });
+  //   }
+  // } catch (error) {
+  //   console.error("Error in handleDrop:", error);
+  //   toast.error("Failed to update item status. Please try again.");
+  //   setDraggedOverColumn(null);
+  //   setDraggedItem(null);
+  // }finally{
+  //   setStatusSpinner(false);
+  // }
   };
 
   const handleFilter = (filters) => {
@@ -388,6 +407,9 @@ const KanbanBoard = () => {
             <QuoteFilter onFilter={handleFilter} />
           </div>
         </div>
+      }
+      {
+        statusSpinner && <PageSpinner />
       }
     </div>
   );

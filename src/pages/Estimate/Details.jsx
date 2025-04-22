@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { DEFAULT_CARDS } from '../../data';
 import AccordionItem from '../../components/detailpage/AccordionItem';
 import { AppContext } from '../../context/AppContext';
+import ItemDetails from '../../components/detailpage/ItemDetails';
 import LineItemsTable from '../../components/detailpage/LineItemsTable';
 import AttachmentsTab from '../../components/detailpage/AttachmentsTab';
 import PdfModal from '../../components/detailpage/PdfModal';
@@ -330,68 +331,14 @@ const handleSidebarToggle = () => {
                 <div className='flex items-center justify-center bg-gray-50 p-2'>
                   <img className='w-1/3' src='https://creatorapp.zohopublic.com/sst1source/source-erp/report/All_Brands/4599841000000958005/Logo/download-file/QThHrb7wD3fTJUPXBRwtZH4d7PmRzJyDK8DNeO9EvN0ewxJMQPJTav3N3AW1vmq6FVszHVg9zpnZZNfBQDPFd4ej4CbNj49Rnapa?filepath=/1726822583522_1SourceLogo.jpg&mediaType=1&digestValue=eyJkaWdlc3RWYWx1ZSI6MTcyNTY1MzE3MzY4NCwibGFuZ3VhZ2UiOiJlbiJ9' alt='the1source'/>
                 </div>
-                <div className='flex items-center justify-center text-sm font-semibold text-gray-800'>
+                <div className='flex items-center justify-center text-xs font-semibold text-gray-800'>
                   <p>A family of companies: Screen Works | Michigan Custom Signs | Signtext | Printnology | King Graphic Systems | CA Marketing</p>
                 </div>
                 <div className='flex flex-col justify-end items-end px-10'>
                   <h1 className='text-3xl'>Quote</h1>
                   <p># {estimate.Quote}</p>
                 </div>
-                <div className="flex text-[13px] mt-4">
-                  {/* Left Column - Addresses */}
-                  <div className="w-1/3">
-                    <div className="mb-2">
-                      <h3 className="font-semibold mb-2">Bill To</h3>
-                      <div className="text-gray-600">
-                        <p className='h-4'>{estimate.Billing_Name}</p>
-                        <p className='h-4'>{estimate.Bill_To.address_line_1}</p>
-                        <p className='h-4'>{estimate.Bill_To.district_city} {estimate.Bill_To.state_province} {estimate.Bill_To.postal_Code}</p>
-                      </div>
-                    </div>
-                    <div className="mb-2">
-                      <h3 className="font-semibold mb-2">Ship To</h3>
-                      <div className="text-gray-600">
-                        <p className='h-4'>{estimate.Shipping_Name}</p>
-                        <p className='h-4'>{estimate.Ship_To.address_line_2}</p>
-                        <p className='h-4'>{estimate.Ship_To.district_city} {estimate.Ship_To.state_province} {estimate.Ship_To.postal_Code}</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Right Column - Details */}
-                  <div className="w-2/3 space-y-4 flex flex-col items-end">
-                    <div className='flex gap-2'>
-                      <table className="table-auto">
-                        <tbody>
-                          <tr className='text-right'>
-                            <td className="py-1 px-4">Quote Date:</td>
-                            <td className="py-1">{estimate.Quote_date}</td>
-                          </tr>
-                          <tr className='text-right'>
-                            <td className="py-1 px-4">Quote Rev #:</td>
-                            <td className="py-1"></td>
-                          </tr>
-                          <tr className='text-right'>
-                            <td className="py-1 px-4">Sales Person:</td>
-                            <td className="py-1">{estimate.SalespersonName}</td>
-                          </tr>
-                          <tr className='text-right'>
-                            <td className="py-1 px-4">Tax Rate:</td>
-                            <td className="py-1">{estimate.Tax_rate_dropdown}</td>
-                          </tr>
-                          <tr className='text-right'>
-                            <td className="py-1 px-4">Lead Time From Approval (Business Days):</td>
-                            <td className="py-1">{estimate.Lead_time_from_approval_Days}</td>
-                          </tr>
-                          <tr className='text-right'>
-                            <td className="py-1 px-4">Post Production:</td>
-                            <td className="py-1">{estimate.Post_production}</td>
-                          </tr>
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                </div>
+                <ItemDetails estimate={estimate} />
                 <h1 className='mt-2'>Quote Name: {estimate.Quote_name}</h1>
                 <LineItemsTable 
                   lineItems={estimate.Item_Details} 

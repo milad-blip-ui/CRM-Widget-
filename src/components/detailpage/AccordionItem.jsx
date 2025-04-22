@@ -16,7 +16,7 @@ const AccordionItem = ({ title, isOpen, onToggle, records, currentActiveId }) =>
                     {records.length > 0 ? (
                         records.map((record) => (
                             // Conditionally add a class based on whether the record is the current active one
-                            <div key={record.ID} className={`${currentActiveId === record.ID ? ' border-indigo-500 border-b-[2px] rounded-lg' : 'border-transparent'} mb-2`}>
+                            <div key={record.ID} className={`${currentActiveId === record.ID ? ' border-indigo-500 border-l-2 border-r-2 rounded-lg' : 'border-transparent'} mb-2`}>
                                 <KanbanCard item={record} />
                             </div>
                         ))

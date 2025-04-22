@@ -5,7 +5,7 @@ export const DEFAULT_CARDS = [
     "Quote_name": "rafi new 2222",
     "Status": "Draft",
     "Source": "Widget",
-    "Quote_approval": "yes",
+    "Quote_approval": "No",
     "Approver1": "4599841000001551027",
     "Post_production": "Dropship",
     "CRM_Account_Name": "6206560000001778136",
@@ -97,216 +97,216 @@ export const DEFAULT_CARDS = [
     "SalespersonName": "Rafi Nikzad",
     "ApproverName": "Rafi Nikzad",
     "Quote_Rev_int": null,
-    "ID": "3973593132856002560",
+    "ID": "1438120467375875072",
     "Quote": "QT-25041522"
   },
-  {
-      "Quote": "QT-25030625",
-      "Status": "Draft",
-      "Account_Name_String": "Michigan Paper Die, Inc.",
-      "CRM_Contact_Name": "Don Brisson",
-      "Total": "0.00",
-      "Sub_Total": "0.00",
-      "Quote_date": "07-Mar-2025",
-      "Final_Estimate": "",
-      "ID": "4599841000005077063",
-    "Notes_Public_RT":"<p style='background-color:red;'>hi farzan</p>",
-    "Is_Hot_job":"No",
-      "Quote_name": "Black Light Frankenstein",
-      "Salesperson": {
-          "display_value": "   Randi Waite  ",
-          "ID": "4599841000001250011"
-      }
-  },
-  {
-      "Quote": "QT-2503079",
-      "Status": "Draft",
-      "Account_Name_String": "Czarnowski",
-      "CRM_Contact_Name": "Dane Kolar",
-      "Total": "250.00",
-      "Sub_Total": "250.00",
-      "Quote_date": "07-Mar-2025",
-      "Final_Estimate": "",
-      "ID": "4599841000004141127",
-      "Quote_name": "GatorBoard ",
-      "Salesperson": {
-          "display_value": "   Jackie  Perry  ",
-          "ID": "4599841000001551133"
-      }
-  },
-  {
-      "Quote": "QT-25030614",
-      "Status": "Draft",
-      "Account_Name_String": "The Comwall Workshop",
-      "CRM_Contact_Name": "Stephen Mitchell",
-      "Total": "742.17",
-      "Sub_Total": "700.16",
-      "Quote_date": "06-Mar-2025",
-      "Final_Estimate": "",
-      "ID": "4599841000004123103",
-      "Quote_name": "Anodized Aluminum Prints",
-      "Salesperson": {
-          "display_value": "   Randi Waite  ",
-          "ID": "4599841000001250011"
-      }
-  },
-  {
-      "Quote": "QT-2503061",
-      "Status": "Accepted by customer",
-      "Account_Name_String": "",
-      "CRM_Contact_Name": "",
-      "Total": "3.00",
-      "Sub_Total": "3.00",
-      "Quote_date": "06-Mar-2025",
-      "Final_Estimate": "/api/v2/sst1source/source-erp/report/All_Estimates_List_view/4599841000004113019/Final_Estimate/download?filepath=1741248388645_QT-2503061.pdf",
-      "ID": "4599841000004113019",
-      "Quote_name": "Delweb test 22",
-      "Salesperson": ""
-  },
-  {
-      "Quote": "QT-25030624",
-      "Status": "Sent for approval",
-      "Account_Name_String": "GRAPHIC RESOURCE GRP",
-      "CRM_Contact_Name": "Chad Dewey",
-      "Total": "173870.00",
-      "Sub_Total": "173870.00",
-      "Quote_date": "06-Mar-2025",
-      "Final_Estimate": "",
-      "ID": "4599841000004115375",
-      "Quote_name": "Gm Signage",
-      "Salesperson": {
-          "display_value": "   Jackie  Perry  ",
-          "ID": "4599841000001551133"
-      }
-  },
-  {
-      "Quote": "QT-25030622",
-      "Status": "Sent for approval",
-      "Account_Name_String": "M. Shapiro Real Estate Group",
-      "CRM_Contact_Name": "Victor Ramirez",
-      "Total": "1908.00",
-      "Sub_Total": "1800.00",
-      "Quote_date": "06-Mar-2025",
-      "Final_Estimate": "",
-      "ID": "4599841000004130081",
-      "Quote_name": "9x12 Folder",
-      "Salesperson": {
-          "display_value": "   Colleen  Loudon  ",
-          "ID": "4599841000001551095"
-      }
-  },
-  {
-      "Quote": "QT-25030611",
-      "Status": "Sent for approval",
-      "Account_Name_String": "Ignite XDS",
-      "CRM_Contact_Name": "Mitch Lipon",
-      "Total": "2955.43",
-      "Sub_Total": "2955.43",
-      "Quote_date": "06-Mar-2025",
-      "Final_Estimate": "",
-      "ID": "4599841000004115149",
-      "Quote_name": "Ferndal History Wall",
-      "Salesperson": {
-          "display_value": "   Bill  Robbins  ",
-          "ID": "4599841000001551071"
-      }
-  },
-  {
-      "Quote": "QT-25030619",
-      "Status": "Internally Approved",
-      "Account_Name_String": "M. Shapiro Real Estate Group",
-      "CRM_Contact_Name": "Victor Ramirez",
-      "Total": "1908.00",
-      "Sub_Total": "1800.00",
-      "Quote_date": "06-Mar-2025",
-      "Final_Estimate": "",
-      "ID": "4599841000004130055",
-      "Quote_name": "9x12 Folder",
-      "Salesperson": {
-          "display_value": "   Colleen  Loudon  ",
-          "ID": "4599841000001551095"
-      }
-  },
-  {
-      "Quote": "QT-25030628",
-      "Status": "Draft",
-      "Account_Name_String": "Palmer Promotional Products",
-      "CRM_Contact_Name": "Dennis Crescenti",
-      "Total": "1365.00",
-      "Sub_Total": "1365.00",
-      "Quote_date": "06-Mar-2025",
-      "Final_Estimate": "",
-      "ID": "4599841000004115421",
-      "Quote_name": "Case Bin / Shelf Talker ",
-      "Salesperson": {
-          "display_value": "   Amit  Soman  ",
-          "ID": "4599841000001541007"
-      }
-  },
-  {
-      "Quote": "QT-25030618",
-      "Status": "Revised",
-      "Account_Name_String": "M. Shapiro Real Estate Group",
-      "CRM_Contact_Name": "Victor Ramirez",
-      "Total": "1431.00",
-      "Sub_Total": "1350.00",
-      "Quote_date": "06-Mar-2025",
-      "Final_Estimate": "",
-      "ID": "4599841000004130029",
-      "Quote_name": "9x12 Folder",
-      "Salesperson": {
-          "display_value": "   Colleen  Loudon  ",
-          "ID": "4599841000001551095"
-      }
-  },
-  {
-      "Quote": "QT-2503068",
-      "Status": "Sent to customer",
-      "Account_Name_String": "PolyFlex Products",
-      "CRM_Contact_Name": "Audra Kimel",
-      "Total": "2872.60",
-      "Sub_Total": "2710.00",
-      "Quote_date": "06-Mar-2025",
-      "Final_Estimate": "",
-      "ID": "4599841000004115069",
-      "Quote_name": "SEG Frame ",
-      "Salesperson": {
-          "display_value": "   Tyler  Nichols  ",
-          "ID": "4599841000001551199"
-      }
-  },
-  {
-      "Quote": "QT-25030621",
-      "Status": "Sent to customer",
-      "Account_Name_String": "Novi Community School District",
-      "CRM_Contact_Name": "George Sipple",
-      "Total": "1135.25",
-      "Sub_Total": "1135.25",
-      "Quote_date": "06-Mar-2025",
-      "Final_Estimate": "",
-      "ID": "4599841000004133023",
-      "Quote_name": "Now Hiring Banner ",
-      "Salesperson": {
-          "display_value": "   Tyler  Nichols  ",
-          "ID": "4599841000001551199"
-      }
-  },
-  {
-      "Quote": "QT-2503069",
-      "Status": "Revised",
-      "Account_Name_String": "Oakland Schools",
-      "CRM_Contact_Name": "Ellen Smith",
-      "Total": "9100.00",
-      "Sub_Total": "9100.00",
-      "Quote_date": "06-Mar-2025",
-      "Final_Estimate": "",
-      "ID": "4599841000004115083",
-      "Quote_name": "Laminated  Posters ",
-      "Salesperson": {
-          "display_value": "   Jackie  Perry  ",
-          "ID": "4599841000001551133"
-      }
-  },
+//   {
+//       "Quote": "QT-25030625",
+//       "Status": "Draft",
+//       "Account_Name_String": "Michigan Paper Die, Inc.",
+//       "CRM_Contact_Name": "Don Brisson",
+//       "Total": "0.00",
+//       "Sub_Total": "0.00",
+//       "Quote_date": "07-Mar-2025",
+//       "Final_Estimate": "",
+//       "ID": "8434386651006427136",
+//     "Notes_Public_RT":"<p style='background-color:red;'>hi farzan</p>",
+//     "Is_Hot_job":"No",
+//       "Quote_name": "Black Light Frankenstein",
+//       "Salesperson": {
+//           "display_value": "   Randi Waite  ",
+//           "ID": "5716768770844398592"
+//       }
+//   },
+//   {
+//       "Quote": "QT-2503079",
+//       "Status": "Draft",
+//       "Account_Name_String": "Czarnowski",
+//       "CRM_Contact_Name": "Dane Kolar",
+//       "Total": "250.00",
+//       "Sub_Total": "250.00",
+//       "Quote_date": "07-Mar-2025",
+//       "Final_Estimate": "",
+//       "ID": "4599841000004141127",
+//       "Quote_name": "GatorBoard ",
+//       "Salesperson": {
+//           "display_value": "   Jackie  Perry  ",
+//           "ID": "4599841000001551133"
+//       }
+//   },
+//   {
+//       "Quote": "QT-25030614",
+//       "Status": "Draft",
+//       "Account_Name_String": "The Comwall Workshop",
+//       "CRM_Contact_Name": "Stephen Mitchell",
+//       "Total": "742.17",
+//       "Sub_Total": "700.16",
+//       "Quote_date": "06-Mar-2025",
+//       "Final_Estimate": "",
+//       "ID": "4599841000004123103",
+//       "Quote_name": "Anodized Aluminum Prints",
+//       "Salesperson": {
+//           "display_value": "   Randi Waite  ",
+//           "ID": "4599841000001250011"
+//       }
+//   },
+//   {
+//       "Quote": "QT-2503061",
+//       "Status": "Accepted by customer",
+//       "Account_Name_String": "",
+//       "CRM_Contact_Name": "",
+//       "Total": "3.00",
+//       "Sub_Total": "3.00",
+//       "Quote_date": "06-Mar-2025",
+//       "Final_Estimate": "/api/v2/sst1source/source-erp/report/All_Estimates_List_view/4599841000004113019/Final_Estimate/download?filepath=1741248388645_QT-2503061.pdf",
+//       "ID": "4599841000004113019",
+//       "Quote_name": "Delweb test 22",
+//       "Salesperson": ""
+//   },
+//   {
+//       "Quote": "QT-25030624",
+//       "Status": "Sent for approval",
+//       "Account_Name_String": "GRAPHIC RESOURCE GRP",
+//       "CRM_Contact_Name": "Chad Dewey",
+//       "Total": "173870.00",
+//       "Sub_Total": "173870.00",
+//       "Quote_date": "06-Mar-2025",
+//       "Final_Estimate": "",
+//       "ID": "4599841000004115375",
+//       "Quote_name": "Gm Signage",
+//       "Salesperson": {
+//           "display_value": "   Jackie  Perry  ",
+//           "ID": "4599841000001551133"
+//       }
+//   },
+//   {
+//       "Quote": "QT-25030622",
+//       "Status": "Sent for approval",
+//       "Account_Name_String": "M. Shapiro Real Estate Group",
+//       "CRM_Contact_Name": "Victor Ramirez",
+//       "Total": "1908.00",
+//       "Sub_Total": "1800.00",
+//       "Quote_date": "06-Mar-2025",
+//       "Final_Estimate": "",
+//       "ID": "4599841000004130081",
+//       "Quote_name": "9x12 Folder",
+//       "Salesperson": {
+//           "display_value": "   Colleen  Loudon  ",
+//           "ID": "4599841000001551095"
+//       }
+//   },
+//   {
+//       "Quote": "QT-25030611",
+//       "Status": "Sent for approval",
+//       "Account_Name_String": "Ignite XDS",
+//       "CRM_Contact_Name": "Mitch Lipon",
+//       "Total": "2955.43",
+//       "Sub_Total": "2955.43",
+//       "Quote_date": "06-Mar-2025",
+//       "Final_Estimate": "",
+//       "ID": "4599841000004115149",
+//       "Quote_name": "Ferndal History Wall",
+//       "Salesperson": {
+//           "display_value": "   Bill  Robbins  ",
+//           "ID": "4599841000001551071"
+//       }
+//   },
+//   {
+//       "Quote": "QT-25030619",
+//       "Status": "Internally Approved",
+//       "Account_Name_String": "M. Shapiro Real Estate Group",
+//       "CRM_Contact_Name": "Victor Ramirez",
+//       "Total": "1908.00",
+//       "Sub_Total": "1800.00",
+//       "Quote_date": "06-Mar-2025",
+//       "Final_Estimate": "",
+//       "ID": "4599841000004130055",
+//       "Quote_name": "9x12 Folder",
+//       "Salesperson": {
+//           "display_value": "   Colleen  Loudon  ",
+//           "ID": "4599841000001551095"
+//       }
+//   },
+//   {
+//       "Quote": "QT-25030628",
+//       "Status": "Draft",
+//       "Account_Name_String": "Palmer Promotional Products",
+//       "CRM_Contact_Name": "Dennis Crescenti",
+//       "Total": "1365.00",
+//       "Sub_Total": "1365.00",
+//       "Quote_date": "06-Mar-2025",
+//       "Final_Estimate": "",
+//       "ID": "4599841000004115421",
+//       "Quote_name": "Case Bin / Shelf Talker ",
+//       "Salesperson": {
+//           "display_value": "   Amit  Soman  ",
+//           "ID": "4599841000001541007"
+//       }
+//   },
+//   {
+//       "Quote": "QT-25030618",
+//       "Status": "Revised",
+//       "Account_Name_String": "M. Shapiro Real Estate Group",
+//       "CRM_Contact_Name": "Victor Ramirez",
+//       "Total": "1431.00",
+//       "Sub_Total": "1350.00",
+//       "Quote_date": "06-Mar-2025",
+//       "Final_Estimate": "",
+//       "ID": "4599841000004130029",
+//       "Quote_name": "9x12 Folder",
+//       "Salesperson": {
+//           "display_value": "   Colleen  Loudon  ",
+//           "ID": "4599841000001551095"
+//       }
+//   },
+//   {
+//       "Quote": "QT-2503068",
+//       "Status": "Sent to customer",
+//       "Account_Name_String": "PolyFlex Products",
+//       "CRM_Contact_Name": "Audra Kimel",
+//       "Total": "2872.60",
+//       "Sub_Total": "2710.00",
+//       "Quote_date": "06-Mar-2025",
+//       "Final_Estimate": "",
+//       "ID": "4599841000004115069",
+//       "Quote_name": "SEG Frame ",
+//       "Salesperson": {
+//           "display_value": "   Tyler  Nichols  ",
+//           "ID": "4599841000001551199"
+//       }
+//   },
+//   {
+//       "Quote": "QT-25030621",
+//       "Status": "Sent to customer",
+//       "Account_Name_String": "Novi Community School District",
+//       "CRM_Contact_Name": "George Sipple",
+//       "Total": "1135.25",
+//       "Sub_Total": "1135.25",
+//       "Quote_date": "06-Mar-2025",
+//       "Final_Estimate": "",
+//       "ID": "4599841000004133023",
+//       "Quote_name": "Now Hiring Banner ",
+//       "Salesperson": {
+//           "display_value": "   Tyler  Nichols  ",
+//           "ID": "4599841000001551199"
+//       }
+//   },
+//   {
+//       "Quote": "QT-2503069",
+//       "Status": "Revised",
+//       "Account_Name_String": "Oakland Schools",
+//       "CRM_Contact_Name": "Ellen Smith",
+//       "Total": "9100.00",
+//       "Sub_Total": "9100.00",
+//       "Quote_date": "06-Mar-2025",
+//       "Final_Estimate": "",
+//       "ID": "4599841000004115083",
+//       "Quote_name": "Laminated  Posters ",
+//       "Salesperson": {
+//           "display_value": "   Jackie  Perry  ",
+//           "ID": "4599841000001551133"
+//       }
+//   },
 ];
 
 // export const DEFAULT_CARDS = [
@@ -3534,7 +3534,7 @@ export const appData = {
 
 export const jsonData = [
     {
-         "Estimate_Json": "{\"data\":{\"Tax_rate_dropdown\":\"0%\",\"Quote_name\":\"rafi new 2222\",\"Status\":\"Draft\",\"Source\":\"Widget\",\"Quote_approval\":\"yes\",\"Approver1\":\"4599841000001551027\",\"Post_production\":\"Dropship\",\"CRM_Account_Name\":\"6206560000001778136\",\"Lead_time_from_approval_Days\":\"2\",\"Salesperson\":\"4599841000001551027\",\"Quote_date\":\"15-Apr-2025\",\"Widget_CRM_Contact_Name\":\"Andika Pradana\",\"Widget_Location_Name\":\"farzan test\",\"Vendor_Number\":\"VA-258\",\"Down_Payment\":0,\"Shipping_Name\":\"farzan test\",\"Billing_Name\":\"Dummy-101\",\"Ship_To\":{\"address_line_2\":\"Sh\",\"district_city\":\"Kabul\",\"state_province\":\"Kabul\",\"postal_Code\":\"1005\"},\"Bill_To\":{\"address_line_1\":\"new\",\"postal_Code\":\"1005\",\"district_city\":\"Kabul\",\"state_province\":\"Kabul\"},\"Notes_Public_RT\":\"<p><span style=\\\"color: rgb(0, 0, 255);\\\">far<\\/span><\\/p>\",\"Private_Notes_RT\":\"<p><span style=\\\"background-color: rgb(0, 240, 240);\\\">dsd<\\/span><\\/p>\",\"Is_Hot_job\":\"Yes\",\"Item_Details\":[{\"id\":1,\"Item\":\"iteam a\",\"Qty\":\"1\",\"Unit\":\"Feet\",\"Description_Rich_Text\":\"<p><span style=\\\"background-color: rgb(255, 0, 0);\\\">farzan&nbsp;<\\/span><\\/p>\",\"Tiered\":false,\"Option\":false,\"Product_Type1\":\"4599841000000968055\",\"Piece_cost\":\"100\",\"Margin\":\"10\",\"piecePrice\":\"110.00\",\"amount\":\"110.00\",\"Product_Type_Name\":\"Digital Marketing\",\"isPieceCostFocused\":false,\"isMarkupFocused\":false},{\"id\":2,\"Item\":\"ti b\",\"Qty\":\"1\",\"Unit\":\"Each\",\"Description_Rich_Text\":\"<p><span style=\\\"color: rgb(255, 153, 0);\\\">da<\\/span><\\/p>\",\"Tiered\":false,\"Option\":false,\"Product_Type1\":\"4599841000000968051\",\"Piece_cost\":\"100\",\"Margin\":\"20\",\"piecePrice\":\"120.00\",\"amount\":\"120.00\",\"isPieceCostFocused\":false,\"isMarkupFocused\":false,\"Product_Type_Name\":\"Packing & Kitting\"}],\"Reference_URL\":[{\"Url\":{\"url\":\"http://www.google.com\"},\"Description\":\"farzan\"}],\"Accounting_Summary\":{\"totalCost\":\"200.00\",\"subTotal\":\"230.00\",\"jobProfit\":\"30.00\",\"jobProfitPercent\":\"13.04\",\"salesTax\":\"0.00\",\"total\":\"230.00\",\"pastDue\":0,\"downPaymentPercent\":0,\"downPaymentAmount\":\"0.00\",\"creditLimit\":0,\"balanceDue\":\"230.00\",\"totalReceivable\":\"230.00\",\"taxableAmount\":\"0.00\"},\"Customer_Attachments\":[{\"file\":null,\"fileDescription\":\"\",\"fileName\":\"\"}],\"Private_Attachments\":[{\"file\":null,\"fileDescription\":\"\",\"fileName\":\"\"}],\"CRM_Account_Name_String\":\"Dummy-101\",\"SalespersonName\":\"Rafi Nikzad\",\"ApproverName\":\"Rafi Nikzad\",\"Quote_Rev_int\":null,\"ID\":\"3973593132856002560\",\"Quote\":\"QT-25041522\"}}"
+         "Estimate_Json": "{\"data\":{\"Tax_rate_dropdown\":\"0%\",\"Quote_name\":\"rafi new 2222\",\"Status\":\"Draft\",\"Source\":\"Widget\",\"Quote_approval\":\"yes\",\"Approver1\":\"4599841000001551027\",\"Post_production\":\"Dropship\",\"CRM_Account_Name\":\"6206560000001778136\",\"Lead_time_from_approval_Days\":\"2\",\"Salesperson\":\"4599841000001551027\",\"Quote_date\":\"15-Apr-2025\",\"Widget_CRM_Contact_Name\":\"Andika Pradana\",\"Widget_Location_Name\":\"farzan test\",\"Vendor_Number\":\"VA-258\",\"Down_Payment\":0,\"Shipping_Name\":\"farzan test\",\"Billing_Name\":\"Dummy-101\",\"Ship_To\":{\"address_line_2\":\"Sh\",\"district_city\":\"Kabul\",\"state_province\":\"Kabul\",\"postal_Code\":\"1005\"},\"Bill_To\":{\"address_line_1\":\"new\",\"postal_Code\":\"1005\",\"district_city\":\"Kabul\",\"state_province\":\"Kabul\"},\"Notes_Public_RT\":\"<p><span style=\\\"color: rgb(0, 0, 255);\\\">far<\\/span><\\/p>\",\"Private_Notes_RT\":\"<p><span style=\\\"background-color: rgb(0, 240, 240);\\\">dsd<\\/span><\\/p>\",\"Is_Hot_job\":\"Yes\",\"Item_Details\":[{\"id\":1,\"Item\":\"iteam a\",\"Qty\":\"1\",\"Unit\":\"Feet\",\"Description_Rich_Text\":\"<p><span style=\\\"background-color: rgb(255, 0, 0);\\\">farzan&nbsp;<\\/span><\\/p>\",\"Tiered\":false,\"Option\":false,\"Product_Type1\":\"4599841000000968055\",\"Piece_cost\":\"100\",\"Margin\":\"10\",\"piecePrice\":\"110.00\",\"amount\":\"110.00\",\"Product_Type_Name\":\"Digital Marketing\",\"isPieceCostFocused\":false,\"isMarkupFocused\":false},{\"id\":2,\"Item\":\"ti b\",\"Qty\":\"1\",\"Unit\":\"Each\",\"Description_Rich_Text\":\"<p><span style=\\\"color: rgb(255, 153, 0);\\\">da<\\/span><\\/p>\",\"Tiered\":false,\"Option\":false,\"Product_Type1\":\"4599841000000968051\",\"Piece_cost\":\"100\",\"Margin\":\"20\",\"piecePrice\":\"120.00\",\"amount\":\"120.00\",\"isPieceCostFocused\":false,\"isMarkupFocused\":false,\"Product_Type_Name\":\"Packing & Kitting\"}],\"Reference_URL\":[{\"Url\":{\"url\":\"http://www.google.com\"},\"Description\":\"farzan\"}],\"Accounting_Summary\":{\"totalCost\":\"200.00\",\"subTotal\":\"230.00\",\"jobProfit\":\"30.00\",\"jobProfitPercent\":\"13.04\",\"salesTax\":\"0.00\",\"total\":\"230.00\",\"pastDue\":0,\"downPaymentPercent\":0,\"downPaymentAmount\":\"0.00\",\"creditLimit\":0,\"balanceDue\":\"230.00\",\"totalReceivable\":\"230.00\",\"taxableAmount\":\"0.00\"},\"Customer_Attachments\":[{\"file\":null,\"fileDescription\":\"\",\"fileName\":\"\"}],\"Private_Attachments\":[{\"file\":null,\"fileDescription\":\"\",\"fileName\":\"\"}],\"CRM_Account_Name_String\":\"Dummy-101\",\"SalespersonName\":\"Rafi Nikzad\",\"ApproverName\":\"Rafi Nikzad\",\"Quote_Rev_int\":null,\"ID\":\"5716768770844398592\",\"Quote\":\"QT-25041522\"}}"
          
     }
 ]
