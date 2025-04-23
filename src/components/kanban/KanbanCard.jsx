@@ -30,7 +30,7 @@ const Kanbanitem = ({item,
   Quote #: ${item.Quote}<br>
   Quote Date: ${item.Quote_date}</p>
   <br>
-  <p><a style="color:blue; text-decoration: underline;" href="http://www.google.com" target="_blank">Click here to view the Quote</a></p>
+  <p><a style="color:blue; text-decoration: underline;" href="https://creatorapp.zohopublic.com/sst1source/source-erp/form-perma/Estimate_Approval_v2/Wgg5wzDtVjjFhOfKZJPPM4bqagy2Ce41t1RJV9UtqYTwpwn137ez2aA7kz7MsbquNsKWkgKbNZQnvHfrOm7ZtAOsj18sFQ0YdJXp?Estimate_2_0=${item.ID}" target="_blank">Click here to view the Quote</a></p>
   <br>
   <p>Regards,<br>
   ${item.SalespersonName}</p>
@@ -131,7 +131,7 @@ const Kanbanitem = ({item,
           targetStatus
         );
         
-        if (statusResponse.ID) {
+        if (statusResponse) {
           updateItemStatus(currentItem.ID, targetStatus);
           toast.success("Email sent and status updated successfully!");
         }

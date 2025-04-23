@@ -1,15 +1,15 @@
 import React, { useState, useEffect, useRef, useMemo, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { AppContext } from "../../context/AppContext";
+import { AppContext } from "../context/AppContext";
 import toast from "react-hot-toast";
 import JoditEditor from "jodit-react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import CustomDropdown from "../../components/shared/CustomDropdown";
-import AccountDropdown from "..//../components/shared/AccountDropdown";
-import { formatDate } from "../../utils/dateUtils";
-import { PageSpinner } from "../../components/shared/Spinner";
-import updateEstimate from "../../services/updateEstimate";
+import CustomDropdown from "../components/shared/CustomDropdown";
+import AccountDropdown from "../components/shared/AccountDropdown";
+import { formatDate } from "../utils/dateUtils";
+import { PageSpinner } from "../components/shared/Spinner";
+import reviseEstimate from "../services/reviseEstimate";
 
 // Utility function for shallow comparison
 function shallowEqual(obj1, obj2) {
@@ -31,10 +31,10 @@ function shallowEqual(obj1, obj2) {
   return true;
 }
 
-const Edit = ({ placeholder }) => {
+const Revise = ({ placeholder }) => {
   const { id } = useParams();
   const [data, setData] = useState(null);
-  const { allItems, updateEstimateById } = useContext(AppContext);
+  const { allItems } = useContext(AppContext);
   const navigate = useNavigate();
   const [editSpinner, setEditSpinner] = useState(false);
   const [forceUpdate, setForceUpdate] = useState(false);
@@ -85,6 +85,7 @@ const Edit = ({ placeholder }) => {
   useEffect(() => {
     const fetchEstimateData = async () => {
       try {
+        console.log("Estiamte EditPage", allItems);
         const estimate = allItems.find((item) => {
           return item.ID === id;
         });
@@ -1051,7 +1052,10 @@ const Edit = ({ placeholder }) => {
         CRM_Account_Name_String: formData.crmAccountNameString,
         SalespersonName: formData.salespersonName,
         ApproverName: formData.approverName,
-        Quote_Rev_int: estimateData?.Quote_Rev_int || null,
+        Quote_Rev_int:
+          estimateData.Quote_Rev_int === null
+            ? 1
+            : estimateData.Quote_Rev_int + 1,
         ID: estimateData.ID,
         Quote: estimateData.Quote,
       },
@@ -1065,24 +1069,36 @@ const Edit = ({ placeholder }) => {
       },
     };
     console.log("payload", payload);
+    estimateData.Status = "Revised";
+
+    const payload2 = {
+      data: {
+        Status: "Revised",
+        Estimate_Json: JSON.stringify({ data: estimateData }),
+      },
+    };
+
+    console.log("payload2", payload2);
+
     try {
-      const result = await updateEstimate(
+      const result = await reviseEstimate(
         id,
         payload,
         customerAttachments,
-        privateAttachments
+        privateAttachments,
+        payload2
       );
       if (result.data) {
-        toast.success("Updated successfully!");
-        updateEstimateById(id);
-        navigate('/');
+        toast.success("Revised successfully!");
+        // await fetchEstimates();
+        // navigate('/');
       } else {
-        console.error("Failed to update estimate:", result);
-        toast.error("Failed to update estimate. Please try again.");
+        console.error("Failed to revise estimate:", result);
+        toast.error("Failed to revise estimate. Please try again.");
       }
     } catch (error) {
-      console.error("Error updating estimate:", error);
-      toast.error("An error occurred while updating the estimate.");
+      console.error("Error reviseing estimate:", error);
+      toast.error("An error occurred while reviseing the estimate.");
     } finally {
       setEditSpinner(false);
     }
@@ -1091,6 +1107,7 @@ const Edit = ({ placeholder }) => {
   const handleCancel = () => {
     window.history.back();
   };
+
   if (isLoading || !estimateData) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -2249,7 +2266,7 @@ const Edit = ({ placeholder }) => {
             <span>
               <i className="fas fa-save mr-2"></i>
             </span>
-            Update
+            Revise
           </button>
 
           <button type="button" onClick={handleCancel} className="btn2">
@@ -2264,4 +2281,4 @@ const Edit = ({ placeholder }) => {
   );
 };
 
-export default Edit;
+export default Revise;

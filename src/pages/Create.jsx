@@ -1,48 +1,29 @@
 import React, { useState, useEffect, useRef, useMemo, useContext } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { AppContext } from "../../context/AppContext";
+import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import JoditEditor from "jodit-react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import CustomDropdown from "../../components/shared/CustomDropdown";
-import AccountDropdown from "..//../components/shared/AccountDropdown";
-import { formatDate } from "../../utils/dateUtils";
-import { PageSpinner } from "../../components/shared/Spinner";
-import reviseEstimate from "../../services/reviseEstimate";
+import CustomDropdown from "../components/shared/CustomDropdown";
+import AccountDropdown from "../components/shared/AccountDropdown";
+import { formatDate } from "../utils/dateUtils";
+import createEstimate from "../services/createEstimate";
+import { PageSpinner } from "../components/shared/Spinner";
+import { AppContext } from "../context/AppContext";
 
-// Utility function for shallow comparison
-function shallowEqual(obj1, obj2) {
-  if (obj1 === obj2) return true;
-  if (
-    typeof obj1 !== "object" ||
-    obj1 === null ||
-    typeof obj2 !== "object" ||
-    obj2 === null
-  ) {
-    return false;
-  }
-  const keys1 = Object.keys(obj1);
-  const keys2 = Object.keys(obj2);
-  if (keys1.length !== keys2.length) return false;
-  for (const key of keys1) {
-    if (obj1[key] !== obj2[key]) return false;
-  }
-  return true;
-}
-
-const Revise = ({ placeholder }) => {
-  const { id } = useParams();
+const Create = ({ placeholder }) => {
   const [data, setData] = useState(null);
-  const { allItems } = useContext(AppContext);
+  const { addEstimateById } = useContext(AppContext);
   const navigate = useNavigate();
-  const [editSpinner, setEditSpinner] = useState(false);
+  const [createSpinner, setCreateSpinner] = useState(false);
   const [forceUpdate, setForceUpdate] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [estimateData, setEstimateData] = useState(null);
-  const [loadingCreatorData, setLoadingCreatorData] = useState(true);
+
+  const [fetchedData, setFetchedData] = useState([]);
+  const [selectedAddress, setSelectedAddress] = useState(null);
+
   const [newContactOptions, setNewContactOptions] = useState([]);
   const [loadingAccountDetails, setLoadingAccountDetails] = useState(false);
+  const [loadingCreatorData, setLoadingCreatorData] = useState(true);
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -82,173 +63,48 @@ const Revise = ({ placeholder }) => {
     fetchData();
   }, []);
 
-  useEffect(() => {
-    const fetchEstimateData = async () => {
-      try {
-        console.log("Estiamte EditPage", allItems);
-        const estimate = allItems.find((item) => {
-          return item.ID === id;
-        });
-        if (estimate) {
-          setEstimateData(estimate);
+  // 1. Define your tax rate options array
+  const taxRateOptions = [
+    { value: "0%", label: "0%" },
+    { value: "6%", label: "6%" },
+    // Add other tax rate options as needed
+  ];
 
-          // Initialize customer attachments
-          if (estimate.Customer_Attachments?.length) {
-            setCustomerAttachments(
-              estimate.Customer_Attachments.map((attach) => ({
-                id: attach.id,
-                file: null, // Keep as null since we can't recreate File objects from JSON
-                fileName: attach.fileName || "",
-                fileDescription: attach.fileDescription || "",
-              }))
-            );
-          } else {
-            setCustomerAttachments([
-              { id: 1, file: null, fileName: "", fileDescription: "" },
-            ]);
-          }
+  // 1. Define your options array
+  const internalApproverOptions = [
+    { value: "Yes", label: "Yes" },
+    { value: "No", label: "No" },
+    // Add other options if needed
+  ];
 
-          // Initialize private attachments
-          if (estimate.Private_Attachments?.length) {
-            setPrivateAttachments(
-              estimate.Private_Attachments.map((attach) => ({
-                id: attach.id,
-                file: null, // Keep as null since we can't recreate File objects from JSON
-                fileName: attach.fileName || "",
-                fileDescription: attach.fileDescription || "",
-              }))
-            );
-          } else {
-            setPrivateAttachments([
-              { id: 1, file: null, fileName: "", fileDescription: "" },
-            ]);
-          }
-        } else {
-          toast.error("Failed to fetch estimate data");
-        }
-      } catch (error) {
-        console.error("Error fetching estimate:", error);
-        toast.error("An error occurred while fetching the estimate");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchEstimateData();
-  }, [id]);
-
-  // Address handling
-  const [fetchedData, setFetchedData] = useState([]);
-  const [selectedAddress, setSelectedAddress] = useState(null);
-
-  // Handle address selection change
-  const handleAddressChange = (selectedName) => {
-    const selected = fetchedData.find((addr) => addr.name === selectedName);
-    setSelectedAddress(selected);
-    if (selected) {
-      setFormData((prev) => ({
-        ...prev,
-        locationName: selected.name,
-        billingAddress: {
-          street: selected.Billing_Street,
-          city: selected.Billing_City,
-          state: selected.Billing_State,
-          zip: selected.Billing_Code,
-        },
-        shippingAddress: {
-          street: selected.Shipping_Street,
-          city: selected.Shipping_City,
-          state: selected.Shipping_State,
-          zip: selected.Shipping_Code,
-        },
-      }));
-    }
-  };
-
-  // Form data state
-  const [formData, setFormData] = useState({
-    quoteDate: new Date(),
-    quoteName: "",
-    crmAccountName: "",
-    crmAccountNameString: "",
-    postProduction: "",
-    leadTime: "",
-    taxRate: "",
-    locationName: "",
-    approver: "",
-    approverName: "",
-    salesperson: "",
-    salespersonName: "", // Add this
-    vendorNumber: "",
-    crmContactName: "",
-    internalApprover: "",
-    privateNotes: "",
-    publicNotes: "",
-    isHotJob: "",
-    billingAddress: {
-      street: "",
-      city: "",
-      state: "",
-      zip: "",
+  // 1. First define your options array
+  const postProductionOptions = [
+    { value: "We Deliver (Our Vehicle)", label: "We Deliver (Our Vehicle)" },
+    { value: "We Deliver (Rented Truck)", label: "We Deliver (Rented Truck)" },
+    { value: "Customer Pickup", label: "Customer Pickup" },
+    { value: "Dropship", label: "Dropship" },
+    {
+      value: "Send UPS/Fedex (Our Account)",
+      label: "Send UPS/Fedex (Our Account)",
     },
-    shippingAddress: {
-      street: "",
-      city: "",
-      state: "",
-      zip: "",
-    },
-  });
+    { value: "Freight Delivery", label: "Freight Delivery" },
+    { value: "Install", label: "Install" },
+    { value: "Unknown", label: "Unknown" },
+  ];
 
-  // Initialize form with estimate data
-  // Initialize form with estimate data
-  useEffect(() => {
-    if (!estimateData) return;
+  //Product Type Data
+  // Memoize productTypeOptions since it doesn't change often
+  const productTypeOptions = useMemo(
+    () =>
+      data?.allProductTypes?.data?.map((type) => ({
+        value: type.ID,
+        label: type.Type_field,
+        taxable: type.Taxable === "true",
+      })) || [],
+    [data?.allProductTypes?.data]
+  );
 
-    const initialFormData = {
-      quoteDate: estimateData.Quote_date || new Date(),
-      quoteName: estimateData.Quote_name || "",
-      crmAccountName: estimateData.CRM_Account_Name,
-      postProduction: estimateData.Post_production || "",
-      leadTime: estimateData.Lead_time_from_approval_Days || "",
-      taxRate: estimateData.Tax_rate_dropdown || "",
-      locationName: estimateData.Widget_Location_Name,
-      approver: estimateData.Approver1 || "",
-      salesperson: estimateData.Salesperson || "",
-      vendorNumber: estimateData.Vendor_Number || "",
-      crmContactName: estimateData.Widget_CRM_Contact_Name || "",
-      internalApprover: estimateData.Quote_approval || "",
-      privateNotes: estimateData.Private_Notes_RT || "",
-      publicNotes: estimateData.Notes_Public_RT || "",
-      isHotJob: estimateData.Is_Hot_job || "",
-      billingAddress: {
-        street: estimateData.Bill_To?.address_line_1,
-        city: estimateData.Bill_To?.district_city,
-        state: estimateData.Bill_To?.state_province,
-        zip: estimateData.Bill_To?.postal_Code,
-      },
-      shippingAddress: {
-        street: estimateData.Ship_To?.address_line_2,
-        city: estimateData.Ship_To?.district_city,
-        state: estimateData.Ship_To?.state_province,
-        zip: estimateData.Ship_To?.postal_Code,
-      },
-      crmAccountNameString: estimateData.CRM_Account_Name_String,
-      salespersonName: estimateData.SalespersonName,
-      approverName: estimateData.ApproverName,
-    };
-
-    setFormData((prev) =>
-      shallowEqual(prev, initialFormData) ? prev : initialFormData
-    );
-
-    fetchAccountDetails(
-      estimateData.CRM_Account_Name,
-      estimateData.Shipping_Name
-    );
-  }, [estimateData]);
-
-  const fetchAccountDetails = async (accountId, estimateAddress) => {
-    console.log(accountId, "-", estimateAddress);
+  const fetchAccountDetails = async (accountId) => {
     setLoadingAccountDetails(true);
     try {
       // Fetch the account details
@@ -258,13 +114,11 @@ const Revise = ({ placeholder }) => {
       });
       const accountData = accountResponse.data[0];
 
-      if (!estimateAddress) {
-        // Update formData with vendor number
-        setFormData((prev) => ({
-          ...prev,
-          vendorNumber: accountData.Vendor_number || "",
-        }));
-      }
+      // Update formData with vendor number
+      setFormData((prev) => ({
+        ...prev,
+        vendorNumber: accountData.Vendor_number || "",
+      }));
 
       const addressData = [];
 
@@ -274,7 +128,8 @@ const Revise = ({ placeholder }) => {
         RecordID: accountId,
         RelatedList: "Contacts",
       });
-
+      console.log("contactsResponse", contactsResponse);
+      // Handle empty or invalid response
       if (
         !contactsResponse ||
         !contactsResponse.data ||
@@ -285,6 +140,7 @@ const Revise = ({ placeholder }) => {
       } else {
         setNewContactOptions(
           contactsResponse.data
+            // Filter out contacts without names
             .filter((contact) => contact.First_Name || contact.Last_Name)
             .map((contact) => ({
               value: `${contact.First_Name || ""} ${
@@ -297,7 +153,7 @@ const Revise = ({ placeholder }) => {
         );
       }
 
-      // 1. Get the main account address
+      // 1. Add main account address if exists
       const mainAddress = {
         name: accountData?.Account_Name,
         Billing_Street: accountData?.Billing_Street,
@@ -309,41 +165,42 @@ const Revise = ({ placeholder }) => {
         Shipping_State: accountData?.Shipping_State,
         Shipping_Code: accountData?.Shipping_Code,
       };
-
-      // Add the main address to the address data
       addressData.push(mainAddress);
-      if (!estimateAddress) {
-        // Update formData with the main address details
-        setFormData((prev) => ({
-          ...prev,
-          locationName: accountData?.Account_Name || "",
-          billingAddress: {
-            street: accountData?.Billing_Street || "",
-            city: accountData?.Billing_City || "",
-            state: accountData?.Billing_State || "",
-            zip: accountData?.Billing_Code || "",
-          },
-          shippingAddress: {
-            street: accountData?.Shipping_Street || "",
-            city: accountData?.Shipping_City || "",
-            state: accountData?.Shipping_State || "",
-            zip: accountData?.Shipping_Code || "",
-          },
-        }));
-      }
+      setSelectedAddress(mainAddress);
+
+      // Update formData with the main address details
+      setFormData((prev) => ({
+        ...prev,
+        locationName: accountData?.Account_Name || "", // Set account name as location
+        billingAddress: {
+          street: accountData?.Billing_Street || "",
+          city: accountData?.Billing_City || "",
+          state: accountData?.Billing_State || "",
+          zip: accountData?.Billing_Code || "",
+        },
+        shippingAddress: {
+          street: accountData?.Shipping_Street || "",
+          city: accountData?.Shipping_City || "",
+          state: accountData?.Shipping_State || "",
+          zip: accountData?.Shipping_Code || "",
+        },
+      }));
       // Fetch addresses
       const addressesResponse = await window.ZOHO.CRM.API.getRelatedRecords({
         Entity: "Accounts",
         RecordID: accountId,
         RelatedList: "Address",
       });
-
+      console.log("addressesResponse", addressesResponse);
+      // 2. Add additional addresses if exist
+      // Check if response has valid data before processing
       if (
         addressesResponse &&
         addressesResponse.data &&
         Array.isArray(addressesResponse.data)
       ) {
         addressesResponse.data.forEach((address) => {
+          // Only push address if it has at least one field with data
           if (
             address.Name ||
             address.Billing_Street ||
@@ -365,27 +222,147 @@ const Revise = ({ placeholder }) => {
       } else {
         console.warn("No valid addresses data found in response");
       }
-
       setFetchedData(addressData);
-
-      // Set the selected address based on the estimate address if provided
-      if (estimateAddress) {
-        const selectedAddr = addressData.find(
-          (addr) => addr.name === estimateAddress
-        );
-        console.log(selectedAddr);
-        if (selectedAddr) {
-          setSelectedAddress(selectedAddr);
-        }
-      } else {
-        setSelectedAddress(mainAddress); // Use main address by default
-      }
     } catch (error) {
       console.error("Error:", error);
       toast.error("Failed to load account details");
     } finally {
       setLoadingAccountDetails(false);
     }
+  };
+
+  // 1. Filter employees with Sales profile and transform data
+  const salesTeam = useMemo(
+    () =>
+      data?.allEmployees?.data
+        ?.filter((employee) => employee.Profile?.zc_display_value === "Sales")
+        ?.map((employee) => ({
+          value: employee.ID,
+          label:
+            employee.Name_SL ||
+            `${employee.Name?.first_name} ${employee.Name?.last_name}`.trim(),
+        })) || [],
+    [data?.allEmployees?.data]
+  );
+  // Handle address selection change
+  const handleAddressChange = (selectedName) => {
+    const selected = fetchedData.find((addr) => addr.name === selectedName);
+    setSelectedAddress(selected);
+    // Update billing/shipping addresses in form state if needed
+    if (selected) {
+      setFormData((prev) => ({
+        ...prev,
+        locationName: selected.name,
+        billingAddress: {
+          street: selected.Billing_Street,
+          city: selected.Billing_City,
+          state: selected.Billing_State,
+          zip: selected.Billing_Code,
+        },
+        shippingAddress: {
+          street: selected.Shipping_Street,
+          city: selected.Shipping_City,
+          state: selected.Shipping_State,
+          zip: selected.Shipping_Code,
+        },
+      }));
+    }
+  };
+  //End address section
+
+  //Note section
+  // State to control visibility of editors
+  const [showPublicNotes, setShowPublicNotes] = useState(false);
+  const [showPrivateNotes, setShowPrivateNotes] = useState(false);
+  const [openDescriptionEditorId, setOpenDescriptionEditorId] = useState(null);
+
+  // Refs for editors
+  const editorPrivate = useRef(null);
+  const editorPublic = useRef(null);
+  // Editor configuration
+  const config = useMemo(
+    () => ({
+      readonly: false, // all options from https://xdsoft.net/jodit/docs/,
+      placeholder: "Start typings...",
+      height: "600px",
+      showCharsCounter: false, // Hide character counter
+      showWordsCounter: false, // Hide word counter
+      showXPathInStatusbar: false, // Hide XPath in status bar
+      removeButtons: ["file", "speechRecognize"],
+    }),
+    [placeholder]
+  );
+
+  //Form data
+  const [formData, setFormData] = useState({
+    quoteDate: new Date(),
+    quoteName: "",
+    crmAccountName: "",
+    crmAccountNameString: "",
+    postProduction: "",
+    leadTime: "",
+    taxRate: "",
+    locationName: "",
+    approver: "",
+    approverName: "",
+    salesperson: "",
+    salespersonName: "",
+    vendorNumber: "",
+    crmContactName: "",
+    internalApprover: "",
+    privateNotes: "",
+    publicNotes: "",
+    isHotJob: "",
+    billingAddress: {
+      street: "",
+      city: "",
+      state: "",
+      zip: "",
+    },
+    shippingAddress: {
+      street: "",
+      city: "",
+      state: "",
+      zip: "",
+    },
+  });
+
+  //Handler for form data
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  // Handler for date picker
+  const handleDateChange = (date) => {
+    // Check if date is valid
+    if (!date || isNaN(new Date(date).getTime())) {
+      toast.error("Invalid date selected");
+      return;
+    }
+    setFormData((prev) => ({
+      ...prev,
+      quoteDate: date,
+    }));
+  };
+
+  // Handler for private notes editor
+  const handlePrivateNotesChange = (newContent) => {
+    setFormData((prev) => ({
+      ...prev,
+      privateNotes: newContent,
+    }));
+  };
+
+  // Handler for public notes editor
+  const handlePublicNotesChange = (newContent) => {
+    setFormData((prev) => ({
+      ...prev,
+      publicNotes: newContent,
+    }));
   };
 
   // Items section
@@ -398,70 +375,223 @@ const Revise = ({ placeholder }) => {
       Description_Rich_Text: "",
       Tiered: false,
       Option: false,
-      Product_Type1: "",
-      Piece_cost: "",
-      Margin: "",
-      piecePrice: "0.00",
-      amount: "0.00",
-      isPieceCostFocused: false,
-      isMarkupFocused: false,
-      Product_Type_Name: "",
+      Product_Type1: "", // New field for Product Type
+      Piece_cost: "", // New field for Piece Cost
+      Margin: "", // New field for Markup
+      piecePrice: "0.00", // Initialize as string
+      amount: "0.00", // Initialize as string
     },
   ]);
 
-  // Initialize items with estimate data
-  useEffect(() => {
-    if (!estimateData?.Item_Details?.length) return;
-
-    const newItems = estimateData.Item_Details.map((item) => ({
-      id: item.id || Math.random().toString(36).substr(2, 9),
-      Item: item.Item || "",
-      Qty: item.Qty || "",
-      Unit: item.Unit || "",
-      Description_Rich_Text: item.Description_Rich_Text || "",
-      Tiered: item.Tiered || false,
-      Option: item.Option || false,
-      Product_Type1: item.Product_Type1 || "",
-      Piece_cost: item.Piece_cost || "",
-      Margin: item.Margin || "",
-      piecePrice: item.piecePrice || "0.00",
-      amount: item.amount || "0.00",
-      isPieceCostFocused: false,
-      isMarkupFocused: false,
-      Product_Type_Name: item.Product_Type_Name,
-    }));
-
-    setItems((prev) => (shallowEqual(prev, newItems) ? prev : newItems));
-  }, [estimateData?.Item_Details]);
-
-  // Reference URLs
-  const [referenceUrls, setReferenceUrls] = useState([
-    { id: 1, url: "", description: "" },
-  ]);
-
-  // Initialize reference URLs
-  useEffect(() => {
-    if (!estimateData?.Reference_URL?.length) return;
-
-    const newUrls = estimateData.Reference_URL.map((url, index) => ({
-      id: index + 1,
-      url: url.Url?.url || "",
-      description: url.Description || "",
-    }));
-
-    setReferenceUrls((prev) => (shallowEqual(prev, newUrls) ? prev : newUrls));
-  }, [estimateData?.Reference_URL]);
-  const addNewReferenceUrl = () => {
-    setReferenceUrls([
-      ...referenceUrls,
+  const addNewItem = () => {
+    setItems([
+      ...items,
       {
-        id: referenceUrls.length + 1,
-        url: "",
-        description: "",
+        id: items.length + 1,
+        Item: "",
+        Qty: "",
+        Unit: "",
+        Description_Rich_Text: "",
+        Tiered: false,
+        Option: false,
+        Product_Type1: "",
+        Piece_cost: "",
+        Margin: "",
+        piecePrice: "0.00", // Initialize as string
+        amount: "0.00", // Initialize as string
+        isPieceCostFocused: false, // Add this
+        isMarkupFocused: false,
       },
     ]);
   };
-  // Accounting summary
+  const hasTieredOrOptionItems = useMemo(() => {
+    return items.some((item) => item.Tiered || item.Option);
+  }, [items]);
+
+  const removeItem = (id) => {
+    setItems(items.filter((item) => item.id !== id));
+  };
+
+  // Handler for Product Type change
+  const handleProductTypeChange = (id, value) => {
+    const selectedProductType = productTypeOptions.find(
+      (option) => option.value === value
+    );
+    setItems(
+      items.map((item) =>
+        item.id === id
+          ? {
+              ...item,
+              Product_Type1: value,
+              Product_Type_Name: selectedProductType?.label || "",
+            }
+          : item
+      )
+    );
+
+    // Force recalculation by updating a dummy state
+    setForceUpdate((prev) => !prev); // Add this state at the top: const [forceUpdate, setForceUpdate] = useState(false);
+  };
+
+  // Handler for Piece Cost change
+  const handlePieceCostChange = (id, value) => {
+    setItems((prevItems) => {
+      const newItems = prevItems.map((item) => {
+        if (item.id === id) {
+          const Piece_cost = parseFloat(value) || 0;
+          const Margin = parseFloat(item.Margin) || 0;
+          const qty = parseFloat(item.Qty) || 0;
+          const piecePrice = Piece_cost * (1 + Margin / 100);
+          const amount = piecePrice * qty;
+
+          return {
+            ...item,
+            Piece_cost: value,
+            piecePrice: piecePrice.toFixed(2),
+            amount: amount.toFixed(2),
+          };
+        }
+        return item;
+      });
+      return newItems;
+    });
+  };
+
+  // Handler for Markup change
+  const handleMarkupChange = (id, value) => {
+    setItems((prevItems) => {
+      const newItems = prevItems.map((item) => {
+        if (item.id === id) {
+          const Piece_cost = parseFloat(item.Piece_cost) || 0;
+          const Margin = parseFloat(value) || 0;
+          const qty = parseFloat(item.Qty) || 0;
+          const piecePrice = Piece_cost * (1 + Margin / 100);
+          const amount = piecePrice * qty;
+
+          return {
+            ...item,
+            Margin: value,
+            piecePrice: piecePrice.toFixed(2),
+            amount: amount.toFixed(2),
+          };
+        }
+        return item;
+      });
+      return newItems;
+    });
+  };
+
+  const handlePieceCostFocus = (id) => {
+    setItems(
+      items.map((item) =>
+        item.id === id ? { ...item, isPieceCostFocused: true } : item
+      )
+    );
+  };
+
+  const handlePieceCostBlur = (id) => {
+    setItems(
+      items.map((item) =>
+        item.id === id ? { ...item, isPieceCostFocused: false } : item
+      )
+    );
+  };
+
+  const handleMarkupFocus = (id) => {
+    setItems(
+      items.map((item) =>
+        item.id === id ? { ...item, isMarkupFocused: true } : item
+      )
+    );
+  };
+
+  const handleMarkupBlur = (id) => {
+    setItems(
+      items.map((item) =>
+        item.id === id ? { ...item, isMarkupFocused: false } : item
+      )
+    );
+  };
+
+  // Handler for Quantity change
+  const handleQtyChange = (id, value) => {
+    setItems((prevItems) => {
+      const newItems = prevItems.map((item) => {
+        if (item.id === id) {
+          const Piece_cost = parseFloat(item.Piece_cost) || 0;
+          const Margin = parseFloat(item.Margin) || 0;
+          const qty = parseFloat(value) || 0;
+          const piecePrice = Piece_cost * (1 + Margin / 100);
+          const amount = piecePrice * qty;
+
+          return {
+            ...item,
+            Qty: value,
+            piecePrice: piecePrice.toFixed(2),
+            amount: amount.toFixed(2),
+          };
+        }
+        return item;
+      });
+      return newItems;
+    });
+  };
+
+  // Handler for Tiered checkbox
+  const handleTieredChange = (id) => {
+    setItems((prev) =>
+      prev.map((item) => {
+        if (item.id === id) {
+          return { ...item, Tiered: !item.Tiered, Option: false };
+        }
+        return item;
+      })
+    );
+  };
+
+  // Handler for Option checkbox
+  const handleOptionChange = (id) => {
+    setItems((prev) =>
+      prev.map((item) => {
+        if (item.id === id) {
+          return { ...item, Option: !item.Option, Tiered: false };
+        }
+        return item;
+      })
+    );
+  };
+
+  // Unit options
+  const unitOptions = [
+    "Box",
+    "Each",
+    "Feet",
+    "Pieces",
+    "Sheet",
+    "Sq Feet",
+    "Units",
+  ];
+
+  // Handler for opening the description editor for a specific item
+  const handleOpenDescriptionEditor = (id) => {
+    setOpenDescriptionEditorId(id);
+  };
+
+  // Handler for closing the description editor
+  const handleCloseDescriptionEditor = () => {
+    setOpenDescriptionEditorId(null);
+  };
+
+  // Handler for updating the description of an item
+  const handleDescriptionChange = (id, newContent) => {
+    setItems(
+      items.map((item) =>
+        item.id === id ? { ...item, Description_Rich_Text: newContent } : item
+      )
+    );
+  };
+
+  // Add these state variables at the top of your component
   const [accountingSummary, setAccountingSummary] = useState({
     totalCost: 0,
     subTotal: 0,
@@ -470,14 +600,13 @@ const Revise = ({ placeholder }) => {
     salesTax: 0,
     total: 0,
     pastDue: 0,
-    downPaymentPercent: estimateData?.Down_Payment || 0,
+    downPaymentPercent: 0,
     downPaymentAmount: 0,
     creditLimit: 0,
     balanceDue: 0,
     totalReceivable: 0,
   });
-
-  // Calculate derived values
+  // 1. First, calculate derived values without setting state
   const calculateDerivedValues = (items, taxRate, downPaymentPercent) => {
     const updatedItems = items.map((item) => {
       const Piece_cost = parseFloat(item.Piece_cost) || 0;
@@ -550,16 +679,8 @@ const Revise = ({ placeholder }) => {
       },
     };
   };
-  const productTypeOptions = useMemo(
-    () =>
-      data?.allProductTypes?.data?.map((type) => ({
-        value: type.ID,
-        label: type.Type_field,
-        taxable: type.Taxable === "true",
-      })) || [],
-    [data?.allProductTypes?.data]
-  );
-  // Memoize calculations
+
+  // 2. Use useMemo to memoize the calculations
   const derivedValues = useMemo(() => {
     return calculateDerivedValues(
       items,
@@ -573,7 +694,7 @@ const Revise = ({ placeholder }) => {
     forceUpdate,
   ]);
 
-  // Update accounting summary
+  // Call this whenever items, tax rate, or down payment changes
   useEffect(() => {
     setAccountingSummary((prev) => ({
       ...prev,
@@ -581,81 +702,172 @@ const Revise = ({ placeholder }) => {
     }));
   }, [derivedValues.summary]);
 
-  // Dropdown options
-  const taxRateOptions = [
-    { value: "0%", label: "0%" },
-    { value: "6%", label: "6%" },
-  ];
-
-  const internalApproverOptions = [
-    { value: "Yes", label: "Yes" },
-    { value: "No", label: "No" },
-  ];
-
-  const postProductionOptions = [
-    { value: "We Deliver (Our Vehicle)", label: "We Deliver (Our Vehicle)" },
-    { value: "We Deliver (Rented Truck)", label: "We Deliver (Rented Truck)" },
-    { value: "Customer Pickup", label: "Customer Pickup" },
-    { value: "Dropship", label: "Dropship" },
-    {
-      value: "Send UPS/Fedex (Our Account)",
-      label: "Send UPS/Fedex (Our Account)",
-    },
-    { value: "Freight Delivery", label: "Freight Delivery" },
-    { value: "Install", label: "Install" },
-    { value: "Unknown", label: "Unknown" },
-  ];
-  const salesTeam = useMemo(
-    () =>
-      data?.allEmployees?.data
-        ?.filter((employee) => employee.Profile?.zc_display_value === "Sales")
-        ?.map((employee) => ({
-          value: employee.ID,
-          label:
-            employee.Name_SL ||
-            `${employee.Name?.first_name} ${employee.Name?.last_name}`.trim(),
-        })) || [],
-    [data?.allEmployees?.data]
-  );
-  const hasTieredOrOptionItems = useMemo(() => {
-    return items.some((item) => item.Tiered || item.Option);
-  }, [items]);
-  const unitOptions = [
-    "Box",
-    "Each",
-    "Feet",
-    "Pieces",
-    "Sheet",
-    "Sq Feet",
-    "Units",
-  ];
-
-  // Form handlers
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
+  // Update your Down Payment % input to handle changes
+  const handleDownPaymentChange = (e) => {
+    const value = parseFloat(e.target.value) || 0;
+    setAccountingSummary((prev) => ({
       ...prev,
-      [name]: value,
+      downPaymentPercent: value,
     }));
   };
+  //Items section ended
 
-  const handleDateChange = (date) => {
-    if (!date || isNaN(new Date(date).getTime())) {
-      toast.error("Invalid date selected");
+  // Customer Attachments section
+  const [customerAttachments, setCustomerAttachments] = useState([
+    { id: 1, file: null, fileDescription: "", fileName: "" },
+  ]);
+  const attachmentFileInputRefs = useRef([]);
+
+  const addNewCustomerAttachment = () => {
+    setCustomerAttachments([
+      ...customerAttachments,
+      {
+        id: customerAttachments.length + 1,
+        file: null,
+        fileDescription: "",
+        fileName: "",
+      },
+    ]);
+  };
+
+  const removeCustomerAttachment = (id) => {
+    setCustomerAttachments(
+      customerAttachments.filter((attachment) => attachment.id !== id)
+    );
+  };
+
+  const handleCustomerAttachmentFileChange = (id, event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Validate file size (e.g., 5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("File size must be less than 5MB");
       return;
     }
-    setFormData((prev) => ({
-      ...prev,
-      quoteDate: date,
-    }));
+    setCustomerAttachments(
+      customerAttachments.map((attachment) =>
+        attachment.id === id
+          ? { ...attachment, file, fileName: file.name }
+          : attachment
+      )
+    );
   };
 
-  // Item handlers
-  const addNewItem = () => {
-    setItems((prev) => [
-      ...prev,
+  const handleCustomerAttachmentFileClick = (index) => {
+    attachmentFileInputRefs.current[index]?.click();
+  };
+
+  // Private Attachments section
+  const [privateAttachments, setPrivateAttachments] = useState([
+    { id: 1, file: null, fileDescription: "", fileName: "" },
+  ]);
+  const privateAttachmentFileInputRefs = useRef([]);
+
+  const addNewPrivateAttachment = () => {
+    setPrivateAttachments([
+      ...privateAttachments,
       {
-        id: prev.length + 1,
+        id: privateAttachments.length + 1,
+        file: null,
+        fileDescription: "",
+        fileName: "",
+      },
+    ]);
+  };
+
+  const removePrivateAttachment = (id) => {
+    setPrivateAttachments(
+      privateAttachments.filter((attachment) => attachment.id !== id)
+    );
+  };
+
+  const handlePrivateAttachmentFileChange = (id, event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Validate file size (e.g., 5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("File size must be less than 5MB");
+      return;
+    }
+    setPrivateAttachments(
+      privateAttachments.map((attachment) =>
+        attachment.id === id
+          ? { ...attachment, file, fileName: file.name }
+          : attachment
+      )
+    );
+  };
+
+  const handlePrivateAttachmentFileClick = (index) => {
+    privateAttachmentFileInputRefs.current[index]?.click();
+  };
+
+  // Reference URL section
+  const [referenceUrls, setReferenceUrls] = useState([
+    { id: 1, url: "", description: "" },
+  ]);
+
+  const addNewReferenceUrl = () => {
+    setReferenceUrls([
+      ...referenceUrls,
+      {
+        id: referenceUrls.length + 1,
+        url: "",
+        description: "",
+      },
+    ]);
+  };
+
+  const removeReferenceUrl = (id) => {
+    setReferenceUrls(referenceUrls.filter((reference) => reference.id !== id));
+  };
+
+  // Create a separate function for resetting the form
+  const resetFormToDefault = () => {
+    // Reset the form if using a form ref
+    if (formRef.current) {
+      formRef.current.reset();
+    }
+
+    setFormData({
+      quoteDate: new Date(),
+      quoteName: "",
+      crmAccountName: "",
+      crmAccountNameString: "",
+      postProduction: "",
+      leadTime: "",
+      taxRate: "",
+      locationName: "",
+      approver: "",
+      approverName: "",
+      salesperson: "",
+      salespersonName: "",
+      vendorNumber: "",
+      crmContactName: "",
+      internalApprover: "",
+      privateNotes: "",
+      publicNotes: "",
+      isHotJob: "",
+      billingAddress: {
+        street: "",
+        city: "",
+        state: "",
+        zip: "",
+      },
+      shippingAddress: {
+        street: "",
+        city: "",
+        state: "",
+        zip: "",
+      },
+    });
+
+    // Reset items to initial state
+    setItems([
+      {
+        id: 1,
         Item: "",
         Qty: "",
         Unit: "",
@@ -667,318 +879,48 @@ const Revise = ({ placeholder }) => {
         Margin: "",
         piecePrice: "0.00",
         amount: "0.00",
-        isPieceCostFocused: false,
-        isMarkupFocused: false,
       },
     ]);
-  };
 
-  const removeItem = (id) => {
-    setItems((prev) => prev.filter((item) => item.id !== id));
-  };
+    // Reset attachments and URLs
+    setCustomerAttachments([
+      { id: 1, file: null, fileDescription: "", fileName: "" },
+    ]);
+    setPrivateAttachments([
+      { id: 1, file: null, fileDescription: "", fileName: "" },
+    ]);
+    setReferenceUrls([{ id: 1, url: "", description: "" }]);
 
-  // Handler for Product Type change
-  const handleProductTypeChange = (id, value) => {
-    const selectedProductType = productTypeOptions.find(
-      (option) => option.value === value
-    );
-    setItems(
-      items.map((item) =>
-        item.id === id
-          ? {
-              ...item,
-              Product_Type1: value,
-              Product_Type_Name: selectedProductType?.label || "",
-            }
-          : item
-      )
-    );
-    // Force recalculation by updating a dummy state
-    setForceUpdate((prev) => !prev); // Add this state at the top: const [forceUpdate, setForceUpdate] = useState(false);
-  };
-
-  const handlePieceCostChange = (id, value) => {
-    setItems((prev) => {
-      return prev.map((item) => {
-        if (item.id === id) {
-          const Piece_cost = parseFloat(value) || 0;
-          const Margin = parseFloat(item.Margin) || 0;
-          const qty = parseFloat(item.Qty) || 0;
-          const piecePrice = Piece_cost * (1 + Margin / 100);
-          const amount = piecePrice * qty;
-
-          return {
-            ...item,
-            Piece_cost: value,
-            piecePrice: piecePrice.toFixed(2),
-            amount: amount.toFixed(2),
-          };
-        }
-        return item;
-      });
-    });
-  };
-
-  const handleMarkupChange = (id, value) => {
-    setItems((prev) => {
-      return prev.map((item) => {
-        if (item.id === id) {
-          const Piece_cost = parseFloat(item.Piece_cost) || 0;
-          const Margin = parseFloat(value) || 0;
-          const qty = parseFloat(item.Qty) || 0;
-          const piecePrice = Piece_cost * (1 + Margin / 100);
-          const amount = piecePrice * qty;
-
-          return {
-            ...item,
-            Margin: value,
-            piecePrice: piecePrice.toFixed(2),
-            amount: amount.toFixed(2),
-          };
-        }
-        return item;
-      });
-    });
-  };
-
-  const handleQtyChange = (id, value) => {
-    setItems((prev) => {
-      return prev.map((item) => {
-        if (item.id === id) {
-          const Piece_cost = parseFloat(item.Piece_cost) || 0;
-          const Margin = parseFloat(item.Margin) || 0;
-          const qty = parseFloat(value) || 0;
-          const piecePrice = Piece_cost * (1 + Margin / 100);
-          const amount = piecePrice * qty;
-
-          return {
-            ...item,
-            Qty: value,
-            piecePrice: piecePrice.toFixed(2),
-            amount: amount.toFixed(2),
-          };
-        }
-        return item;
-      });
-    });
-  };
-
-  const handleTieredChange = (id) => {
-    setItems((prev) =>
-      prev.map((item) => {
-        if (item.id === id) {
-          return { ...item, Tiered: !item.Tiered, Option: false };
-        }
-        return item;
-      })
-    );
-  };
-
-  const handleOptionChange = (id) => {
-    setItems((prev) =>
-      prev.map((item) => {
-        if (item.id === id) {
-          return { ...item, Option: !item.Option, Tiered: false };
-        }
-        return item;
-      })
-    );
-  };
-  const handleMarkupBlur = (id) => {
-    setItems(
-      items.map((item) =>
-        item.id === id ? { ...item, isMarkupFocused: false } : item
-      )
-    );
-  };
-  const handlePieceCostFocus = (id) => {
-    setItems(
-      items.map((item) =>
-        item.id === id ? { ...item, isPieceCostFocused: true } : item
-      )
-    );
-  };
-
-  const handlePieceCostBlur = (id) => {
-    setItems(
-      items.map((item) =>
-        item.id === id ? { ...item, isPieceCostFocused: false } : item
-      )
-    );
-  };
-
-  const handleMarkupFocus = (id) => {
-    setItems(
-      items.map((item) =>
-        item.id === id ? { ...item, isMarkupFocused: true } : item
-      )
-    );
-  };
-  // Notes editors
-  const [showPublicNotes, setShowPublicNotes] = useState(false);
-  const [showPrivateNotes, setShowPrivateNotes] = useState(false);
-  const [openDescriptionEditorId, setOpenDescriptionEditorId] = useState(null);
-
-  const editorPrivate = useRef(null);
-  const editorPublic = useRef(null);
-
-  const config = useMemo(
-    () => ({
-      readonly: false,
-      placeholder: "Start typings...",
-      height: "600px",
-      showCharsCounter: false,
-      showWordsCounter: false,
-      showXPathInStatusbar: false,
-      removeButtons: ["file", "speechRecognize"],
-    }),
-    [placeholder]
-  );
-
-  const handlePrivateNotesChange = (newContent) => {
-    setFormData((prev) => ({
-      ...prev,
-      privateNotes: newContent,
-    }));
-  };
-
-  const handlePublicNotesChange = (newContent) => {
-    setFormData((prev) => ({
-      ...prev,
-      publicNotes: newContent,
-    }));
-  };
-
-  const handleOpenDescriptionEditor = (id) => {
-    setOpenDescriptionEditorId(id);
-  };
-
-  const handleCloseDescriptionEditor = () => {
+    // Reset notes editors visibility
+    setShowPublicNotes(false);
+    setShowPrivateNotes(false);
     setOpenDescriptionEditorId(null);
+
+    // Reset accounting summary
+    setAccountingSummary({
+      totalCost: 0,
+      subTotal: 0,
+      jobProfit: 0,
+      jobProfitPercent: 0,
+      salesTax: 0,
+      total: 0,
+      pastDue: 0,
+      downPaymentPercent: 0,
+      downPaymentAmount: 0,
+      creditLimit: 0,
+      balanceDue: 0,
+      totalReceivable: 0,
+    });
   };
-
-  const handleDescriptionChange = (id, newContent) => {
-    setItems((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, Description_Rich_Text: newContent } : item
-      )
-    );
-  };
-
-  // Down payment handler
-  const handleDownPaymentChange = (e) => {
-    const value = parseFloat(e.target.value) || 0;
-    setAccountingSummary((prev) => ({
-      ...prev,
-      downPaymentPercent: value,
-    }));
-  };
-
-  // Attachments
-  const [customerAttachments, setCustomerAttachments] = useState([]);
-  const attachmentFileInputRefs = useRef([]);
-
-  const addNewCustomerAttachment = () => {
-    setCustomerAttachments((prev) => [
-      ...prev,
-      {
-        id: prev.length + 1,
-        file: null,
-        fileDescription: "",
-      },
-    ]);
-  };
-
-  const removeCustomerAttachment = (id) => {
-    setCustomerAttachments((prev) =>
-      prev.filter((attachment) => attachment.id !== id)
-    );
-  };
-
-  const handleCustomerAttachmentFileChange = (id, event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("File size must be less than 5MB");
-      return;
-    }
-    setCustomerAttachments((prev) =>
-      prev.map((attachment) =>
-        attachment.id === id
-          ? {
-              ...attachment,
-              file,
-              fileName: file.name, // Update fileName when file changes
-            }
-          : attachment
-      )
-    );
-  };
-
-  const handleCustomerAttachmentFileClick = (index) => {
-    attachmentFileInputRefs.current[index]?.click();
-  };
-
-  const [privateAttachments, setPrivateAttachments] = useState([]);
-  const privateAttachmentFileInputRefs = useRef([]);
-
-  const addNewPrivateAttachment = () => {
-    setPrivateAttachments((prev) => [
-      ...prev,
-      {
-        id: prev.length + 1,
-        file: null,
-        fileDescription: "",
-      },
-    ]);
-  };
-
-  const removePrivateAttachment = (id) => {
-    setPrivateAttachments((prev) =>
-      prev.filter((attachment) => attachment.id !== id)
-    );
-  };
-
-  const handlePrivateAttachmentFileChange = (id, event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("File size must be less than 5MB");
-      return;
-    }
-    setPrivateAttachments((prev) =>
-      prev.map((attachment) =>
-        attachment.id === id
-          ? {
-              ...attachment,
-              file,
-              fileName: file.name, // Update fileName when file changes
-            }
-          : attachment
-      )
-    );
-  };
-
-  const handlePrivateAttachmentFileClick = (index) => {
-    privateAttachmentFileInputRefs.current[index]?.click();
-  };
-
-  // Form submission
+  // Handler for Form Submit
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    console.log(formData);
-    console.log(items);
-    console.log(customerAttachments);
-    console.log(privateAttachments);
-    console.log(referenceUrls);
-
+    // Required fields check
     const requiredFields = {
       quoteName: "Quote Name",
       postProduction: "Post Production",
       taxRate: "Tax Rate",
+      // Add other required fields
     };
 
     const missingFields = Object.entries(requiredFields)
@@ -990,15 +932,20 @@ const Revise = ({ placeholder }) => {
       return;
     }
 
-    setEditSpinner(true);
+    setCreateSpinner(true);
+
     const refURLS = referenceUrls
       .map((item) => {
         if (item.url) {
           return { Url: { url: item.url }, Description: item.description };
         }
-        return null;
       })
-      .filter((item) => item !== null);
+      .filter((item) => item !== undefined);
+    console.log(formData);
+    console.log(items);
+    console.log(customerAttachments);
+    console.log(privateAttachments);
+    console.log(referenceUrls);
 
     // Create the complete data object
     const completeData = {
@@ -1052,12 +999,7 @@ const Revise = ({ placeholder }) => {
         CRM_Account_Name_String: formData.crmAccountNameString,
         SalespersonName: formData.salespersonName,
         ApproverName: formData.approverName,
-        Quote_Rev_int:
-          estimateData.Quote_Rev_int === null
-            ? 1
-            : estimateData.Quote_Rev_int + 1,
-        ID: estimateData.ID,
-        Quote: estimateData.Quote,
+        Quote_Rev_int: null,
       },
     };
 
@@ -1069,68 +1011,56 @@ const Revise = ({ placeholder }) => {
       },
     };
     console.log("payload", payload);
-    estimateData.Status = "Revised";
-
-    const payload2 = {
-      data: {
-        Status: "Revised",
-        Estimate_Json: JSON.stringify({ data: estimateData }),
-      },
-    };
-
-    console.log("payload2", payload2);
-
     try {
-      const result = await reviseEstimate(
-        id,
+      const result = await createEstimate(
         payload,
         customerAttachments,
-        privateAttachments,
-        payload2
+        privateAttachments
       );
       if (result.data) {
-        toast.success("Revised successfully!");
-        // await fetchEstimates();
-        // navigate('/');
+        console.log('xx',result.data)
+        toast.success("Record created successfully!");
+        resetFormToDefault();
+        addEstimateById(result.data?.ID)
+         navigate('/');
       } else {
-        console.error("Failed to revise estimate:", result);
-        toast.error("Failed to revise estimate. Please try again.");
+        // Log the result in case of failure for debugging
+        console.error("Failed to create record:", result);
+        toast.error("Failed to create record. Please try again.");
       }
     } catch (error) {
-      console.error("Error reviseing estimate:", error);
-      toast.error("An error occurred while reviseing the estimate.");
+      console.error("Error creating estimate:", error);
+      toast.error("An error occurred while creating the record.");
     } finally {
-      setEditSpinner(false);
+      setCreateSpinner(false);
     }
   };
 
-  const handleCancel = () => {
-    window.history.back();
+  //Handler for Form Reset
+  const formRef = useRef(null);
+  const handleReset = () => {
+    resetFormToDefault();
   };
 
-  if (isLoading || !estimateData) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        Loading estimate data...
-      </div>
-    );
-  }
   // Render spinner if still loading
   if (loadingCreatorData) {
     return <PageSpinner />;
   }
   return (
     <div className="h-[90vh] w-full overflow-y-auto overflow-x-hidden">
-      <form onSubmit={handleSubmit} className="p-6 space-y-4 w-full">
-        <div className="flex flex-col md:flex-row gap-6 w-full mb-8">
-          <div className="">
+      <form
+        onSubmit={handleSubmit}
+        ref={formRef}
+        className="p-6  space-y-4 w-full"
+      >
+        <div className=" flex flex-col md:flex-row gap-6 w-full mb-8">
+          <div className=" ">
             <div>
               <label className="input-label">
                 CRM Account <span className="text-red-500">*</span>
               </label>
               <AccountDropdown
                 value={formData.crmAccountName}
-                initialLabel={formData.crmAccountNameString} // Pass the account name string
                 onChange={(value, accountName) => {
                   setFormData((prev) => ({
                     ...prev,
@@ -1175,25 +1105,26 @@ const Revise = ({ placeholder }) => {
               <label className="input-label">
                 Post Production <span className="text-red-500">*</span>
               </label>
-              <CustomDropdown
-                options={postProductionOptions}
-                value={formData.postProduction}
-                onChange={(value) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    postProduction: value,
-                  }))
-                }
-                placeholder="-Select-"
-                className="w-56"
-              />
             </div>
+            <CustomDropdown
+              options={postProductionOptions}
+              value={formData.postProduction}
+              onChange={(value) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  postProduction: value,
+                }))
+              }
+              placeholder="-Select-"
+              className="w-56"
+            />
           </div>
-          <div className="">
+          <div className=" ">
             <div>
               <label className="input-label">
                 Quote Name <span className="text-red-500">*</span>
               </label>
+
               <input
                 type="text"
                 name="quoteName"
@@ -1251,7 +1182,7 @@ const Revise = ({ placeholder }) => {
               />
             </div>
           </div>
-          <div className="">
+          <div className=" ">
             <div className="">
               <label className="input-label">
                 Internal Approver <span className="text-red-500">*</span>
@@ -1269,6 +1200,7 @@ const Revise = ({ placeholder }) => {
                 className="w-full"
               />
             </div>
+            {/* Conditionally render Approver dropdown if internalApprover is "yes" */}
             {formData.internalApprover === "Yes" && (
               <div className="mt-4">
                 <label className="input-label">
@@ -1297,12 +1229,12 @@ const Revise = ({ placeholder }) => {
               <input
                 type="text"
                 name="vendorNumber"
-                className="input-box"
-                value={formData.vendorNumber}
-                readOnly
-                onChange={() => {}}
+                className="input-box" // Gray background indicates readonly
+                value={formData.vendorNumber} // Directly use account data
+                readOnly // Makes the field non-editable
               />
             </div>
+            {/* Is Hot Job */}
             <div className="mt-4">
               <label className="text-gray-600 mb-2 block text-sm">
                 Is Hot Job?
@@ -1333,11 +1265,12 @@ const Revise = ({ placeholder }) => {
               </div>
             </div>
           </div>
-          <div className="md:w-96">
+          <div className=" md:w-96">
             <div className="relative">
               <label className="text-gray-600 mb-2 block text-sm">
                 Account Address <span className="text-primary">*</span>
               </label>
+
               <CustomDropdown
                 options={fetchedData.map((addr) => ({
                   value: addr.name,
@@ -1345,10 +1278,12 @@ const Revise = ({ placeholder }) => {
                 }))}
                 value={selectedAddress?.name || ""}
                 onChange={handleAddressChange}
-                placeholder="Select address"
+                placeholder="-Select-"
                 className="w-full"
                 searchable="true"
               />
+              {loadingAccountDetails && <PageSpinner />}
+              {/* Display selected address details */}
               {selectedAddress && (
                 <div className="mt-4 flex items-start gap-16">
                   <div>
@@ -1378,8 +1313,11 @@ const Revise = ({ placeholder }) => {
                 </div>
               )}
             </div>
+            {/* {!loading &&( */}
             <div className="">
+              {/* Add New Addresses Button */}
               <button
+                // onClick={handleAddNew}
                 type="button"
                 className="text-indigo-500 mt-2 hover:text-indigo-600 font-medium flex items-center gap-1"
               >
@@ -1387,6 +1325,7 @@ const Revise = ({ placeholder }) => {
                 Add new address
               </button>
             </div>
+            {/* )} */}
           </div>
         </div>
 
@@ -1396,57 +1335,77 @@ const Revise = ({ placeholder }) => {
         </h1>
         <div className="mx-auto overflow-x-auto mt-4 ">
           <div className="min-w-[700px]">
+            {/* Header Section */}
             <div className="flex gap-4 items-start bg-gray-100 p-2 rounded-sm px-7 mb-4">
+              {/* Tiered Header */}
               <div className="w-12 ">
                 <label className="block text-sm font-medium text-gray-700  mb-1">
                   Tiered
                 </label>
               </div>
+              {/* Option Header */}
               <div className="w-12 ">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Option
                 </label>
               </div>
+
+              {/* Product Type Header */}
               <div className="w-48">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Product Type
                 </label>
               </div>
+
+              {/* Item Details Header */}
               <div className="w-40">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Item Details <span className="text-red-500">*</span>
                 </label>
               </div>
+
+              {/* Quantity Header */}
               <div className="w-16">
                 <label className="block text-sm font-medium text-gray-700 ml-3 mb-1">
                   Qty <span className="text-red-500">*</span>
                 </label>
               </div>
+
+              {/* Unit Header */}
               <div className="w-28">
                 <label className="block text-sm font-medium text-gray-700 ml-3 mb-1">
                   Unit <span className="text-red-500">*</span>
                 </label>
               </div>
+
+              {/* Description Header */}
               <div className="w-28">
                 <label className="block text-sm font-medium text-gray-700 mb-1 ml-3">
                   Description
                 </label>
               </div>
+              {/* Piece Cost Header */}
               <div className="w-32 ">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Piece Cost ($)
                 </label>
               </div>
+
+              {/* Markup Header */}
               <div className="w-28">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Markup (%)
                 </label>
               </div>
+
+              {/* Piece Price Header */}
               <div className="w-32">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Piece Price ($)
                 </label>
               </div>
+
+              {/* Amount Header */}
               <div className="w-28 mr-[-20px]">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Amount ($)
@@ -1474,13 +1433,14 @@ const Revise = ({ placeholder }) => {
                     <i className="fas fa-x"></i>
                   </span>
                 </button>
-                <div className="flex mt-3 items-center gap-12 w-28">
+                {/* Tiered and Option Checkboxes */}
+                <div className="flex mt-3 items-center  gap-12 w-28">
                   <input
                     type="checkbox"
                     checked={item.Tiered}
                     onChange={() => handleTieredChange(item.id)}
                     className="form-checkbox h-4 w-4 text-indigo-600 focus:ring-0"
-                    disabled={item.id === 1} // Disable for first row
+                    disabled={item.id === 1}
                   />
                   <input
                     type="checkbox"
@@ -1490,6 +1450,8 @@ const Revise = ({ placeholder }) => {
                     disabled={item.id === 1}
                   />
                 </div>
+
+                {/* Product Type */}
                 <div className="w-44">
                   <CustomDropdown
                     options={productTypeOptions}
@@ -1502,6 +1464,8 @@ const Revise = ({ placeholder }) => {
                     searchable="true"
                   />
                 </div>
+
+                {/* Item Details */}
                 <div className="w-40">
                   <input
                     type="text"
@@ -1517,6 +1481,7 @@ const Revise = ({ placeholder }) => {
                     }
                   />
                 </div>
+                {/* Quantity */}
                 <div className="w-16">
                   <input
                     type="text"
@@ -1526,7 +1491,7 @@ const Revise = ({ placeholder }) => {
                     onChange={(e) => handleQtyChange(item.id, e.target.value)}
                   />
                 </div>
-                <div className="w-28">
+                {/* Unit */}
                 <div className="w-28">
                   <CustomDropdown
                     options={unitOptions.map((option) => ({
@@ -1546,7 +1511,7 @@ const Revise = ({ placeholder }) => {
                     searchable={false} // Since these are predefined units
                   />
                 </div>
-                </div>
+                {/* Description */}
                 <div className="w-20">
                   <button
                     type="button"
@@ -1556,6 +1521,8 @@ const Revise = ({ placeholder }) => {
                     <i className="fa-sharp fa-solid fa-square-plus"></i> Add
                   </button>
                 </div>
+
+                {/* Piece Cost Input */}
                 <div className="relative w-28">
                   <input
                     type="number"
@@ -1576,6 +1543,8 @@ const Revise = ({ placeholder }) => {
                     $
                   </span>
                 </div>
+
+                {/* Markup Input */}
                 <div className="w-28 relative">
                   <input
                     type="number"
@@ -1596,6 +1565,8 @@ const Revise = ({ placeholder }) => {
                     %
                   </span>
                 </div>
+
+                {/* Piece Price */}
                 <div className="w-28 relative">
                   <input
                     type="number"
@@ -1606,6 +1577,8 @@ const Revise = ({ placeholder }) => {
                   />
                   <span className="input-span">$</span>
                 </div>
+
+                {/* Amount */}
                 <div className="w-28 relative">
                   <input
                     type="number"
@@ -1619,6 +1592,7 @@ const Revise = ({ placeholder }) => {
               </div>
             ))}
 
+            {/* Full-Screen Description Editor */}
             {openDescriptionEditorId && (
               <div className="fixed inset-0 bg-white z-50 p-6">
                 <div className="flex justify-between items-center mb-4">
@@ -1651,12 +1625,16 @@ const Revise = ({ placeholder }) => {
             </div>
           </div>
         </div>
+        {/* end items */}
 
         {/* Accounting Summary Section */}
         <div className="">
+          {/* <h1 className="text-gray-700 font-roboto font-semibold mb-4">Accounting Summary</h1>
+           */}
           <div className="grid grid-cols-3 gap-6">
             {/* First Column */}
             <div className="space-y-4">
+              {/* Public Notes and Private Notes Section */}
               <h1 className="mt-4 text-gray-700 font-roboto font-semibold">
                 Notes
               </h1>
@@ -1681,6 +1659,7 @@ const Revise = ({ placeholder }) => {
                 )}
               </div>
 
+              {/* Public Notes Editor */}
               {showPublicNotes && (
                 <div className="fixed inset-0 bg-white z-50 p-6">
                   <div className="flex justify-between items-center mb-4">
@@ -1701,6 +1680,7 @@ const Revise = ({ placeholder }) => {
                 </div>
               )}
 
+              {/* Private Notes Editor */}
               {showPrivateNotes && (
                 <div className="fixed inset-0 bg-white z-50 p-6">
                   <div className="flex justify-between items-center mb-4">
@@ -1722,10 +1702,11 @@ const Revise = ({ placeholder }) => {
                   />
                 </div>
               )}
+              {/*ENd Public Notes and Private Notes Section */}
             </div>
-
             {/* Second Column */}
             <div className="space-y-4">
+              {/* Total Cost */}
               <div className="flex items-center justify-between">
                 <label className="text-gray-600 text-sm">Total Cost</label>
                 <div className="relative w-40">
@@ -1746,6 +1727,7 @@ const Revise = ({ placeholder }) => {
                 </div>
               </div>
 
+              {/* Job Profit ($) */}
               <div className="flex items-center justify-between">
                 <label className="text-gray-600 text-sm">Job Profit</label>
                 <div className="relative w-40">
@@ -1766,6 +1748,7 @@ const Revise = ({ placeholder }) => {
                 </div>
               </div>
 
+              {/* Job Profit (%) */}
               <div className="flex items-center justify-between">
                 <label className="text-gray-600 text-sm">Job Profit %</label>
                 <div className="relative w-40">
@@ -1786,6 +1769,7 @@ const Revise = ({ placeholder }) => {
                 </div>
               </div>
 
+              {/* Past Due - This one works as is */}
               <div className="flex items-center justify-between">
                 <label className="text-gray-600 text-sm">Past Due</label>
                 <div className="relative w-40">
@@ -1800,6 +1784,7 @@ const Revise = ({ placeholder }) => {
                 </div>
               </div>
 
+              {/* Total Receivable */}
               <div className="flex items-center justify-between">
                 <label className="text-gray-600 text-sm">
                   Total Receivable
@@ -1824,6 +1809,7 @@ const Revise = ({ placeholder }) => {
                 </div>
               </div>
 
+              {/* Credit Limit - This one works as is */}
               <div className="flex items-center justify-between">
                 <label className="text-gray-600 text-sm">Credit Limit</label>
                 <div className="relative w-40">
@@ -1843,6 +1829,7 @@ const Revise = ({ placeholder }) => {
 
             {/* Third Column */}
             <div className="space-y-4">
+              {/* Sub-Total */}
               <div className="flex items-center justify-between">
                 <label className="text-gray-600 text-sm">Sub-Total</label>
                 <div className="relative w-40">
@@ -1863,6 +1850,7 @@ const Revise = ({ placeholder }) => {
                 </div>
               </div>
 
+              {/* Sales Tax */}
               <div className="flex items-center justify-between">
                 <label className="text-gray-600 text-sm">Sales Tax</label>
                 <div className="relative w-40">
@@ -1883,6 +1871,7 @@ const Revise = ({ placeholder }) => {
                 </div>
               </div>
 
+              {/* Total */}
               <div className="flex items-center justify-between">
                 <label className="text-gray-600 text-sm">Total</label>
                 <div className="relative w-40">
@@ -1903,6 +1892,7 @@ const Revise = ({ placeholder }) => {
                 </div>
               </div>
 
+              {/* Down Payment % - This one works as is */}
               <div className="flex items-center justify-between">
                 <label className="text-gray-600 text-sm">Down Payment %</label>
                 <div className="relative w-40">
@@ -1917,6 +1907,7 @@ const Revise = ({ placeholder }) => {
                 </div>
               </div>
 
+              {/* Down Payment Amount */}
               <div className="flex items-center justify-between">
                 <label className="text-gray-600 text-sm">
                   Down Payment Amount
@@ -1941,6 +1932,7 @@ const Revise = ({ placeholder }) => {
                 </div>
               </div>
 
+              {/* Balance Due */}
               <div className="flex items-center justify-between">
                 <label className="text-gray-600 text-sm">Balance Due</label>
                 <div className="relative w-40">
@@ -1983,10 +1975,7 @@ const Revise = ({ placeholder }) => {
               </div>
             </div>
             {customerAttachments.map((attachment, index) => (
-              <div
-                key={`${attachment.id}-${index}`}
-                className="flex gap-4 mb-4 items-start"
-              >
+              <div key={attachment.id} className="flex gap-4 mb-4 items-start">
                 <button
                   type="button"
                   onClick={() => removeCustomerAttachment(attachment.id)}
@@ -2004,10 +1993,7 @@ const Revise = ({ placeholder }) => {
                       className="input-box"
                       placeholder="Select File"
                       readOnly
-                      value={
-                        attachment.fileName ||
-                        (attachment.file ? attachment.file.name : "")
-                      }
+                      value={attachment.file ? attachment.file.name : ""}
                       onClick={() => handleCustomerAttachmentFileClick(index)}
                     />
                     <input
@@ -2071,6 +2057,7 @@ const Revise = ({ placeholder }) => {
             </div>
           </div>
         </div>
+        {/* END Customer Attachments section */}
 
         {/* Private Attachments section */}
         <h1 className="mt-4 text-gray-700 font-roboto font-semibold">
@@ -2091,10 +2078,7 @@ const Revise = ({ placeholder }) => {
               </div>
             </div>
             {privateAttachments.map((attachment, index) => (
-              <div
-                key={`${attachment.id}-${index}`}
-                className="flex gap-4 mb-4 items-start"
-              >
+              <div key={attachment.id} className="flex gap-4 mb-4 items-start">
                 <button
                   type="button"
                   onClick={() => removePrivateAttachment(attachment.id)}
@@ -2112,10 +2096,7 @@ const Revise = ({ placeholder }) => {
                       className="input-box"
                       placeholder="Select File"
                       readOnly
-                      value={
-                        attachment.fileName ||
-                        (attachment.file ? attachment.file.name : "")
-                      }
+                      value={attachment.file ? attachment.file.name : ""}
                       onClick={() => handlePrivateAttachmentFileClick(index)}
                     />
                     <input
@@ -2179,7 +2160,7 @@ const Revise = ({ placeholder }) => {
             </div>
           </div>
         </div>
-
+        {/* END Private Attachments section */}
         {/* Reference URL section */}
         <h1 className="mt-4 text-gray-700 font-roboto font-semibold">
           Reference URL
@@ -2257,23 +2238,22 @@ const Revise = ({ placeholder }) => {
             </div>
           </div>
         </div>
-
-        {/* Form buttons */}
-        {loadingAccountDetails && <PageSpinner />}
-        {editSpinner && <PageSpinner />}
+        {/* end refrence url */}
+        {/* create reset button */}
+        {createSpinner && <PageSpinner />}
         <div className="flex items-center mt-5 py-2 flex-row gap-3">
           <button type="submit" className="btn">
             <span>
               <i className="fas fa-save mr-2"></i>
             </span>
-            Revise
+            Save
           </button>
 
-          <button type="button" onClick={handleCancel} className="btn2">
+          <button type="button" onClick={handleReset} className="btn2">
             <span>
-              <i className="fas fa-times mr-2"></i>
+              <i className="fas fa-refresh mr-2"></i>
             </span>
-            Cancel
+            Reset
           </button>
         </div>
       </form>
@@ -2281,4 +2261,4 @@ const Revise = ({ placeholder }) => {
   );
 };
 
-export default Revise;
+export default Create; // Also ensure this matches the new component name

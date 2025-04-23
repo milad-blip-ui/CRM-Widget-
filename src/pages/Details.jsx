@@ -1,12 +1,12 @@
 import React, { useEffect, useState,useContext ,useRef} from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { DEFAULT_CARDS } from '../../data';
-import AccordionItem from '../../components/detailpage/AccordionItem';
-import { AppContext } from '../../context/AppContext';
-import ItemDetails from '../../components/detailpage/ItemDetails';
-import LineItemsTable from '../../components/detailpage/LineItemsTable';
-import AttachmentsTab from '../../components/detailpage/AttachmentsTab';
-import PdfModal from '../../components/detailpage/PdfModal';
+import { DEFAULT_CARDS } from '../data';
+import AccordionItem from '../components/detailpage/AccordionItem';
+import { AppContext } from '../context/AppContext';
+import ItemDetails from '../components/detailpage/ItemDetails';
+import LineItemsTable from '../components/detailpage/LineItemsTable';
+import AttachmentsTab from '../components/detailpage/AttachmentsTab';
+import PdfModal from '../components/detailpage/PdfModal';
 
 const DetailPage = () => {
   const { id } = useParams(); 

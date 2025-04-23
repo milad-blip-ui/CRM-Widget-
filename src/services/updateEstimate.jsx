@@ -14,78 +14,45 @@ const updateEstimate = async (estimateId, payload, customerAttachments, privateA
     console.log("update response",response);
     if(response.details.statusMessage.code === 3000){
       console.log("Main record response", response.details.statusMessage);
-      return response.details.statusMessage;
+      const recordId = response?.details?.statusMessage?.data?.ID;
+      const result = await window.ZOHO.CRM.API.insertRecord({
+        Entity: "Upload_File",
+        APIData: {
+          Name: recordId,
+        }
+      });
+      console.log("UPload file Id",result)
+      const CRMID = result?.data[0]?.details?.id;
+      for (const item of customerAttachments) {
+        if (item.file) {
+        const customerAttUpload = await window.ZOHO.CRM.API.attachFile({
+            Entity: "Upload_File",
+            RecordID: CRMID,
+            File: { Name: `CA_${item.fileName}`, Content: item.file },
+          })
+          console.log("customerAttUpload result",customerAttUpload); 
+        }
+      }
+      for (const item of privateAttachments) {
+        if (item.file) {
+        const privateAttUpload = await window.ZOHO.CRM.API.attachFile({
+            Entity: "Upload_File",
+            RecordID: CRMID,
+            File: { Name: `PA_${item.fileName}`, Content: item.file },
+          })
+          console.log("privateAttUpload result",privateAttUpload); 
+        }
+      }
+     const updateAttachment = await window.ZOHO.CRM.API.updateRecord({
+      Entity:"Upload_File",
+      APIData:{id: CRMID,hasAttachment: true}
+    })
+    console.log("updateAttachment",updateAttachment)
+
+    return response.details.statusMessage;
     }
     
-    // if (response.code === 3000) {
-    //   const mainRecordId = response.data.ID;
 
-    //   // Handling customer attachments
-    //   for (const item of customerAttachments) {
-    //     if (item.file) {
-    //       const createFileRecordPayload = {
-    //         data: {
-    //           Estimate_2_0_Customer_Attachment: mainRecordId,
-    //           File_Descprition: item.fileDescription || "customer file uploaded",
-    //         },
-    //       };
-          
-    //       // Creating upload record for customer attachment
-    //       const result = await ZOHO.CREATOR.API.addRecord({
-    //         appName: "source-erp",
-    //         formName: "Estimate_2_0_File_Upload",
-    //         data: createFileRecordPayload,
-    //       });
-    //       console.log("customerAttach record response", result);
-          
-    //       if (result.code === 3000) {
-    //         const uploadRecordId = result.data.ID;
-    //         const uploadResponse = await ZOHO.CREATOR.API.uploadFile({
-    //           appName: "source-erp",
-    //           reportName: "Estimate_2_0_File_Upload_Report",
-    //           id: uploadRecordId,
-    //           fieldName: "File_upload",
-    //           file: item.file,
-    //         });
-    //         console.log("customerAttach Fileupload response:", uploadResponse);
-    //       }
-    //     }
-    //   }
-
-    //   // Handling private attachments
-    //   for (const item of privateAttachments) {
-    //     if (item.file) {
-    //       const createPrivateFileRecordPayload = {
-    //         data: {
-    //           Estimate_2_0_Private_Attachment: mainRecordId,
-    //           File_Descprition: item.fileDescription || "private file uploaded",
-    //         },
-    //       };
-          
-    //       // Creating upload record for private attachment
-    //       const privateResult = await ZOHO.CREATOR.API.addRecord({
-    //         appName: "source-erp",
-    //         formName: "Estimate_2_0_File_Upload",
-    //         data: createPrivateFileRecordPayload,
-    //       });
-    //       console.log("privateAttach record response", privateResult);
-          
-    //       if (privateResult.code === 3000) {
-    //         const privateUploadRecordId = privateResult.data.ID;
-    //         const privateUploadResponse = await ZOHO.CREATOR.API.uploadFile({
-    //           appName: "source-erp",
-    //           reportName: "Estimate_2_0_File_Upload_Report",
-    //           id: privateUploadRecordId,
-    //           fieldName: "File_upload",
-    //           file: item.file,
-    //         });
-    //         console.log("privateAttach Fileupload response:", privateUploadResponse);
-    //       }
-    //     }
-    //   }
-
-    //   return response;
-    // }
   } catch (error) {
     console.error(error);
     throw error;
