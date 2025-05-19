@@ -20,7 +20,7 @@ const ItemDetails = ({estimate}) => {
           <h3 className="font-semibold mb-2">Ship To</h3>
           <div className="text-gray-600">
             <p className="h-4">{estimate.Shipping_Name}</p>
-            <p className="h-4">{estimate.Ship_To.address_line_2}</p>
+            <p className="h-4">{estimate.Ship_To.address_line_1}</p>
             <p className="h-4">
               {estimate.Ship_To.district_city} {estimate.Ship_To.state_province}{" "}
               {estimate.Ship_To.postal_Code}
@@ -35,27 +35,31 @@ const ItemDetails = ({estimate}) => {
           <table className="table-auto">
             <tbody>
               <tr className="text-right">
-                <td className="py-1 px-4">Quote Date:</td>
-                <td className="py-1">{estimate.Quote_date}</td>
+                <td className="py-1 px-4">SO Date:</td>
+                <td className="py-1">{estimate.SO_Date}</td>
               </tr>
               <tr className="text-right">
-                <td className="py-1 px-4">Quote Rev #:</td>
-                <td className="py-1"></td>
+                <td className="py-1 px-4">Vendor Number:</td>
+                <td className="py-1">{estimate.Vendor_Number}</td>
               </tr>
               <tr className="text-right">
                 <td className="py-1 px-4">Sales Person:</td>
                 <td className="py-1">{estimate.SalespersonName}</td>
               </tr>
               <tr className="text-right">
+                <td className="py-1 px-4">Sales Person:</td>
+                <td className="py-1">{estimate.Widget_CRM_Contact_Name}</td>
+              </tr>
+              <tr className="text-right">
                 <td className="py-1 px-4">Tax Rate:</td>
-                <td className="py-1">{estimate.Tax_rate_dropdown}</td>
+                <td className="py-1">{estimate.Tax_rate}</td>
               </tr>
               <tr className="text-right">
                 <td className="py-1 px-4">
-                  Lead Time From Approval (Business Days):
+                Business Days for Approval:
                 </td>
                 <td className="py-1">
-                  {estimate.Lead_time_from_approval_Days}
+                  {estimate.Lead_time_from_approval_Business_Days}
                 </td>
               </tr>
               <tr className="text-right">

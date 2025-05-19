@@ -1,32 +1,9 @@
-const fetchEstimateById = async (estimateId) => {
-  try {
-    const connection = "crmwidgetconnection";
+import React from 'react'
 
-    const headers = {
-      "Content-Type": "application/json",
-    };
+const fetchEstimateById = () => {
+  return (
+    <div>fetchEstimateById</div>
+  )
+}
 
-    const response = await window.ZOHO.CRM.CONNECTION.invoke(connection, {
-      parameters: {},
-      headers: headers,
-      method: "GET",
-      url: `https://www.zohoapis.com/creator/v2.1/data/sst1source/source-erp/report/QT_For_CRM_widget_Update/${estimateId}`,
-      param_type: 1,
-    });
-
-    console.log("estimate by id:", response);
-    if (response && response.details && response.details.statusMessage) {
-
-      return response.details.statusMessage.data;
-
-    } else {
-      console.error("Invalid API response structure", response);
-    }
-    
-  } catch (error) {
-    console.error(error);
-    throw error;
-  }
-};
-
-export default fetchEstimateById;
+export default fetchEstimateById

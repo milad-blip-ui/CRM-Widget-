@@ -5,17 +5,19 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && cd ../crm_app && zet pack",
+    "build": "vite build && cd ../crm_app",
     "lint": "eslint .",
     "preview": "vite preview"
   },
   "dependencies": {
     "@tailwindcss/forms": "^0.5.10",
     "axios": "^1.7.9",
+    "file-saver": "^2.0.5",
     "framer-motion": "^12.4.10",
     "html2canvas": "^1.4.1",
     "jodit-react": "^5.2.15",
     "jspdf": "^3.0.1",
+    "jszip": "^3.10.1",
     "pdfjs-dist": "^3.4.120",
     "react": "^18.3.1",
     "react-datepicker": "^8.2.1",

@@ -7,9 +7,26 @@
     <!--ZOHO CRM WIDGET SDK SUPER REQUIRED!!!-->
     <script src="https://live.zwidgets.com/js-sdk/1.2/ZohoEmbededAppSDK.min.js"></script>
     <title>the1source Portal</title>
+    <link href="./src/components/shared/loader.css" >
+    <style>
+      .custom-fixed-center {
+    position: fixed;     /* Equivalent to Tailwind's fixed */
+    top: 0;              /* Equivalent to Tailwind's inset-0 */
+    right: 0;            /* Same as above */
+    bottom: 0;           /* Same as above */
+    left: 0;             /* Same as above */
+    z-index: 999999;     /* Equivalent to Tailwind's z-999999 */
+    display: flex;       /* Equivalent to Tailwind's flex */
+    align-items: center; /* Equivalent to Tailwind's items-center */
+    justify-content: center; /* Equivalent to Tailwind's justify-center */
+}
+    </style>
   </head>
   <body>
     <div id="root">
+      <div class='custom-fixed-center'>
+        <div class='loader'></div>
+      </div>
     </div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

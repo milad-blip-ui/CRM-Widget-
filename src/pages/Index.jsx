@@ -1,22 +1,21 @@
 import { useState, useEffect, useMemo, useContext, useCallback } from 'react';
 import { AppContext } from '../context/AppContext';
 import KanbanCard from '../components/kanban/KanbanCard';
-import QuoteFilter from '../components/shared/QuoteFilter';
+// import QuoteFilter from '../components/shared/QuoteFilter';
 import updateEstimateStatus from '../services/updateEstimateStatus';
-import { PageSpinner } from '../components/shared/Spinner';
+// import { PageSpinner } from '../components/shared/Spinner';
 import toast from 'react-hot-toast';
+
 const statuses = [
   'Draft',
-  'Sent for approval',
-  'Internally Approved',
-  'Sent to customer',
-  'Accepted by customer',
-  'Revised'
+  'In Process',
+  'Sent to design'
 ];
+
 // Utility functions for localStorage
 const loadFilters = () => {
   try {
-    const saved = localStorage.getItem('kanbanFilters');
+    const saved = localStorage.getItem('kanbanFiltersSO');
     return saved ? JSON.parse(saved) : [];
   } catch (e) {
     console.error("Failed to load filters", e);
@@ -26,17 +25,17 @@ const loadFilters = () => {
 
 const saveFilters = (filters) => {
   try {
-    localStorage.setItem('kanbanFilters', JSON.stringify(filters));
+    localStorage.setItem('kanbanFiltersSO', JSON.stringify(filters));
   } catch (e) {
     console.error("Failed to save filters", e);
   }
 };
+
 const KanbanBoard = () => {
   const { allItems, loading, error, updateItemStatus, showSearchPanel, setShowSearchPanel } = useContext(AppContext);
   const [statusSpinner, setStatusSpinner] = useState(false);
-
   const [activeFilters, setActiveFilters] = useState(loadFilters());
-
+  
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') setShowSearchPanel(false);
@@ -44,23 +43,27 @@ const KanbanBoard = () => {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
+
   const [visibleItems, setVisibleItems] = useState({});
   const [isDragging, setIsDragging] = useState(false);
   const [draggedOverColumn, setDraggedOverColumn] = useState(null);
   const [draggedItem, setDraggedItem] = useState(null);
-  const [sortField, setSortField] = useState('Quote_date');
+  const [sortField, setSortField] = useState('SO_Date');
   const [sortDirection, setSortDirection] = useState('DESC');
 
-  // Sorting function (pure, doesn't depend on state)
+  // Initialize status counts
+  const [statusCounts, setStatusCounts] = useState({});
+
+  // Sorting function
   const sortItems = useCallback((items) => {
     return [...items].sort((a, b) => {
       let comparison = 0;
       switch (sortField) {
-        case 'Quote_date':
-          comparison = new Date(a.Quote_date || 0) - new Date(b.Quote_date || 0);
+        case 'SO_Date':
+          comparison = new Date(a.SO_Date || 0) - new Date(b.SO_Date || 0);
           break;
-        case 'Quote':
-          comparison = (a.Quote || '').localeCompare(b.Quote || '');
+        case 'Salesorder':
+          comparison = (a.Salesorder || '').localeCompare(b.Salesorder || '');
           break;
         case 'SalespersonName':
           comparison = (a.SalespersonName || '').localeCompare(b.SalespersonName || '');
@@ -69,7 +72,7 @@ const KanbanBoard = () => {
           comparison = (a.CRM_Account_Name_String || '').localeCompare(b.CRM_Account_Name_String || '');
           break;
         default:
-          comparison = new Date(a.Quote_date || 0) - new Date(b.Quote_date || 0);
+          comparison = new Date(a.SO_Date || 0) - new Date(b.SO_Date || 0);
       }
       return sortDirection === 'DESC' ? -comparison : comparison;
     });
@@ -77,17 +80,16 @@ const KanbanBoard = () => {
 
   // First apply filters, then sort the filtered results
   const filteredAndSortedItems = useMemo(() => {
-    // Apply filters
     const filtered = activeFilters.length === 0 
       ? allItems 
       : allItems.filter(item => {
           return activeFilters.every(filter => {
             const fieldMap = {
-              'Quote #': 'Quote',
-              'Quote Name': 'Quote_name',
+              'Salesorder #': 'Salesorder',
+              'SO Name': 'SO_name',
               'Account Name': 'CRM_Account_Name_String',
               'Salesperson': 'SalespersonName',
-              'Quote Date': 'Quote_date'
+              'SO Date': 'SO_Date'
             };
 
             const dataKey = fieldMap[filter.field];
@@ -95,7 +97,7 @@ const KanbanBoard = () => {
             const filterValue = filter.value;
 
             // Handle date comparison
-            if (filter.field === 'Quote Date') {
+            if (filter.field === 'SO Date') {
               if (!filterValue && filter.operator !== 'Is Empty' && filter.operator !== 'Is Not Empty') {
                 return true;
               }
@@ -114,9 +116,7 @@ const KanbanBoard = () => {
             // Handle text/number fields
             const itemStr = String(itemValue || '').toLowerCase().trim();
             const filterStr = String(filterValue || '').toLowerCase().trim();
-
-            // Strict matching for Quote #
-            if (filter.field === 'Quote #' && filter.operator === 'Is') {
+            if (filter.field === 'Salesorder #' && filter.operator === 'Is') {
               return itemStr === filterStr;
             }
 
@@ -137,15 +137,7 @@ const KanbanBoard = () => {
     return sortItems(filtered);
   }, [allItems, activeFilters, sortItems]);
 
-  // Status counts based on filtered and sorted items
-  const statusCounts = useMemo(() => {
-    return filteredAndSortedItems.reduce((acc, item) => {
-      acc[item.Status] = (acc[item.Status] || 0) + 1;
-      return acc;
-    }, {});
-  }, [filteredAndSortedItems]);
-
-  // Initialize visible items
+  // Initialize visible items in one effect and status counts in another
   useEffect(() => {
     const initialVisible = {};
     statuses.forEach(status => {
@@ -156,7 +148,15 @@ const KanbanBoard = () => {
     setVisibleItems(initialVisible);
   }, [filteredAndSortedItems]);
 
-  // Infinite scroll handler
+  useEffect(() => {
+    // Update status counts whenever the visible items change
+    const counts = statuses.reduce((acc, status) => {
+      acc[status] = (visibleItems[status]?.length || 0);
+      return acc;
+    }, {});
+    setStatusCounts(counts);
+  }, [visibleItems]);
+
   const handleScroll = useCallback((status, e) => {
     const element = e.target;
     const { scrollTop, scrollHeight, clientHeight } = element;
@@ -178,7 +178,7 @@ const KanbanBoard = () => {
     }
   }, [filteredAndSortedItems, visibleItems]);
 
-  // Drag and drop handlers (unchanged from your original)
+  // Drag and drop handlers
   const handleDragStart = (e, item) => {
     e.dataTransfer.setData('text/plain', item.ID);
     setIsDragging(true);
@@ -212,64 +212,63 @@ const KanbanBoard = () => {
 
   const handleDrop = async (e, targetStatus) => {
     e.preventDefault();
-    toast.error("Move is disabled.");
-    return;
-    // if(targetStatus === "Sent to customer"){
-    //   alert("modal");
-    // }
-  // try {
-  //   const itemId = e.dataTransfer.getData("text/plain");
-  //   console.log("draggedItem", draggedItem);
-  //   console.log(targetStatus);
-  //   setStatusSpinner(true);
-  //   const response = await updateEstimateStatus(itemId, draggedItem, targetStatus);
-  //   if(response.ID){
-  //     if (targetStatus !== draggedItem?.Status) {
-  //       updateItemStatus(itemId, targetStatus);
-        
-  //       const movedItem = filteredAndSortedItems.find(item => item.ID === itemId);
-        
-  //       if (movedItem) {
-         
-  //         const updatedItem = {
-  //           ...movedItem,
-  //           Status: targetStatus,
-  //         };
-          
-  //         console.log('Card moved:', updatedItem);
-  //       }
-  //     }
+    console.log("targetStatus", targetStatus);
+    console.log("draggedItem", draggedItem?.Status);
+
+    // Check if the move is allowed based on rules
+    if (draggedItem.Status === "Draft" && targetStatus === "Sent to design") { 
+      toast.error("Move not allowed."); return; 
+    }
+    if (draggedItem.Status === "In Process" && targetStatus === "Draft") { 
+      toast.error("Move not allowed."); return; 
+    }
+    if (draggedItem.Status === "Sent to design" && targetStatus === "Draft") { 
+      toast.error("Move not allowed."); return; 
+    }
+    if (draggedItem.Status === "Sent to design" && targetStatus === "In Process") { 
+      toast.error("Move not allowed."); return; 
+    }
+
+    try {
+      const itemId = e.dataTransfer.getData("text/plain");
+      console.log("draggedItem", draggedItem);
+      console.log(targetStatus);
+      setStatusSpinner(true);
       
-  //     setDraggedOverColumn(null);
-  //     setDraggedItem(null);
-      
-  //     setVisibleItems(prev => {
-  //       const newVisible = { ...prev };
-        
-  //       statuses.forEach(status => {
-  //         if (newVisible[status]) {
-  //           newVisible[status] = newVisible[status].filter(item => item.ID !== itemId);
-  //         }
-  //       });
-        
-  //       const movedItem = filteredAndSortedItems.find(item => item.ID === itemId);
-  //       if (movedItem) {
-  //         const updatedItem = { ...movedItem, Status: targetStatus };
-  //         const newColumnItems = [...(newVisible[targetStatus] || []), updatedItem];
-  //         newVisible[targetStatus] = sortItems(newColumnItems).slice(0, 20);
-  //       }
-        
-  //       return newVisible;
-  //     });
-  //   }
-  // } catch (error) {
-  //   console.error("Error in handleDrop:", error);
-  //   toast.error("Failed to update item status. Please try again.");
-  //   setDraggedOverColumn(null);
-  //   setDraggedItem(null);
-  // }finally{
-  //   setStatusSpinner(false);
-  // }
+      const response = await updateEstimateStatus(itemId, draggedItem, targetStatus);
+      if (response.ID) {
+        if (targetStatus !== draggedItem?.Status) {
+          updateItemStatus(itemId, targetStatus);
+        }
+
+        setVisibleItems(prev => {
+          const newVisible = { ...prev };
+
+          // Remove item from its previous status
+          statuses.forEach(status => {
+            if (newVisible[status]) {
+              newVisible[status] = newVisible[status].filter(item => item.ID !== itemId);
+            }
+          });
+
+          // Add item to the target status
+          const movedItem = filteredAndSortedItems.find(item => item.ID === itemId);
+          if (movedItem) {
+            const updatedItem = { ...movedItem, Status: targetStatus };
+            newVisible[targetStatus] = [...(newVisible[targetStatus] || []), updatedItem];
+          }
+
+          return newVisible;
+        });
+      }
+    } catch (error) {
+      console.error("Error in handleDrop:", error);
+      toast.error("Failed to update item status. Please try again.");
+      setDraggedOverColumn(null);
+      setDraggedItem(null);
+    } finally {
+      setStatusSpinner(false);
+    }
   };
 
   const handleFilter = (filters) => {
@@ -299,8 +298,8 @@ const KanbanBoard = () => {
           value={sortField}
           onChange={(e) => setSortField(e.target.value)}
         >
-          <option value="Quote_date">Quote Date</option>
-          <option value="Quote">Quote number</option>
+          <option value="SO_Date">SO Date</option>
+          <option value="Salesorder">Salesorder number</option>
           <option value="SalespersonName">Salesperson</option>
           <option value="CRM_Account_Name_String">Account Name</option>
         </select>
@@ -327,19 +326,15 @@ const KanbanBoard = () => {
                 <div className='bg-gray-50 pr-6 px-2'>
                   <div className={`flex items center justify-between p-3 border rounded-tl-lg rounded-tr-lg border-t-4  ${
                     status === 'Draft' ? 'bg-cyan-100 border-cyan-100 border-t-cyan-400' :
-                    status === 'Sent for approval' ? 'bg-yellow-100 border-yellow-100 border-t-yellow-400' :
-                    status === 'Internally Approved' ? 'bg-indigo-100 border-indigo-100 border-t-indigo-400' :
-                    status === 'Sent to customer' ? 'bg-purple-100 border-purple-100 border-t-purple-400' :
-                    status === 'Accepted by customer' ? 'bg-green-100 border-green-100 border-t-green-400' :
+                    status === 'In Process' ? 'bg-yellow-100 border-yellow-100 border-t-yellow-400' :
+                    status === 'Sent to design' ? 'bg-indigo-100 border-indigo-100 border-t-indigo-400' :
                     'bg-red-100 border-red-100 border-t-red-400'
                   }`}>
                     <h2 className="font-semibold text-gray-700">{status}</h2>
                     <span className={`inline-flex items-center gap-x-1.5 py-1.5 px-3 rounded-full text-xs font-medium ${
                       status === 'Draft' ? 'bg-cyan-300' :
-                      status === 'Sent for approval' ? 'bg-yellow-300' :
-                      status === 'Internally Approved' ? 'bg-indigo-300' :
-                      status === 'Sent to customer' ? 'bg-purple-300' :
-                      status === 'Accepted by customer' ? 'bg-green-300' :
+                      status === 'In Process' ? 'bg-yellow-300' :
+                      status === 'Sent to design' ? 'bg-indigo-300' :
                       'bg-red-300'
                     } text-gray-700`}>{statusCounts[status] || 0}</span>
                   </div>
@@ -394,7 +389,7 @@ const KanbanBoard = () => {
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl text-gray-800 font-bold">Search Panel</h2>
             <button 
-               onClick={()=>setShowSearchPanel(false)}
+              onClick={() => setShowSearchPanel(false)}
               className="text-red-500 hover:text-gray-700"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -402,15 +397,13 @@ const KanbanBoard = () => {
               </svg>
             </button>
           </div>
-          <hr></hr>
+          <hr />
           <div className="space-y-3 mt-4">
-            <QuoteFilter onFilter={handleFilter} />
+            {/* <QuoteFilter onFilter={handleFilter} /> */}
           </div>
         </div>
       }
-      {
-        statusSpinner && <PageSpinner />
-      }
+      {/* { statusSpinner && <PageSpinner /> } */}
     </div>
   );
 };

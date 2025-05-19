@@ -22,7 +22,7 @@ const initializeApp = async () => {
         },
         headers: headers,
         method: "GET",
-        url: "https://www.zohoapis.com/creator/v2.1/data/sst1source/source-erp/report/QT_For_CRM_widget_Update",
+        url: "https://www.zohoapis.com/creator/v2.1/data/sst1source/source-erp/report/SO_For_CRM_widget_Update",
         param_type: 1,
       });
       console.log("Total records fetched:", response);

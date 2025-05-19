@@ -2,31 +2,24 @@ import React, { createContext, useState, useEffect } from "react";
 import initializeApp from "../services/initializeApp";
 import fetchEstimateById from '../services/fetchEstimateById';
 import { fetchAllEstimates } from "../services/mockApi";
+import transformSalesorder from "../context/transformSalesorder";
 import { DEFAULT_CARDS } from '../data';
 // Create a Context
 export const AppContext = createContext();
-
 // Create a Provider Component
 export const AppProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [allItems, setAllItems] = useState([]);
   const [showSearchPanel, setShowSearchPanel] = useState(false);
-
+  
   // Fetch initial data
   useEffect(() => {
     const loadData = async () => {
       try {
         //const data = await fetchAllEstimates();
-       const data = await initializeApp();
-        const estimates = data
-          .map((item) => {
-            if (item.Estimate_Json && item.Estimate_Json.trim() !== "") {
-              const result = JSON.parse(item.Estimate_Json);
-              return result.data;
-            }
-            return undefined;
-          })
-          .filter((estimate) => estimate !== undefined);
+      //const data = await initializeApp();
+
+      const estimates = DEFAULT_CARDS.map(item => transformSalesorder(item));
         setAllItems(estimates);
         //setAllItems(DEFAULT_CARDS)
         setLoading(false);
@@ -43,10 +36,8 @@ export const AppProvider = ({ children }) => {
   const addEstimateById = async (estimateId) => {
     try {
       const newEstimate = await fetchEstimateById(estimateId);
-      if (newEstimate.Estimate_Json && newEstimate.Estimate_Json.trim() !== "") {
-        const result = JSON.parse(newEstimate.Estimate_Json);
-         setAllItems((prevItems) => [...prevItems, result.data]);
-      }
+      const result = transformSalesorder(newEstimate);
+      setAllItems((prevItems) => [...prevItems, result]);
     } catch (err) {
       console.error("Error adding estimate:", err.message);
     }
@@ -56,14 +47,12 @@ export const AppProvider = ({ children }) => {
   const updateEstimateById = async (estimateId) => {
     try {
       const updatedEstimate = await fetchEstimateById(estimateId);
-      if (updatedEstimate.Estimate_Json && updatedEstimate.Estimate_Json.trim() !== "") {
-        const result = JSON.parse(updatedEstimate.Estimate_Json);
-         setAllItems((prevItems) =>
-          prevItems.map((item) =>
-            item.ID === estimateId ? result.data : item
-          )
-        );
-      }
+      const result = transformSalesorder(updatedEstimate);
+      setAllItems((prevItems) =>
+        prevItems.map((item) =>
+          item.ID === estimateId ? result : item
+        )
+      );
     } catch (err) {
       console.error("Error updating estimate:", err.message);
     }

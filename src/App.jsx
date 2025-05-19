@@ -3,7 +3,8 @@ import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import AppLayout from "./layout/AppLayout";
 import { AppContext } from './context/AppContext';
 import { Toaster } from 'react-hot-toast';
-import {PageSpinner} from './components/shared/Spinner';
+import SoIndex from './pages/SoIndex'
+// import {PageSpinner} from './components/shared/Spinner';
 
 //estimate imports
 // Import EstimatesContext
@@ -11,14 +12,13 @@ import Estimate from './pages/Index';
 import EstimateDetail from './pages/Details';
 import EstimateCreate from './pages/Create';
 import EstimateEdit from './pages/Edit';
-import EstimateRevise from './pages/Revise';
 
 function App() {
   const { loading } = useContext(AppContext);
  //const [loading, setLoading] = useState(false);
-  if (loading) {
-    return <PageSpinner />;
-  }
+  // if (loading) {
+  //   return <PageSpinner />;
+  // }
 
   return (
     <Router>
@@ -30,7 +30,7 @@ function App() {
           <Route path="/es-create" element={<EstimateCreate />} />
           <Route path="/es-details/:id" element={<EstimateDetail />} />
           <Route path="/es-edit/:id" element={<EstimateEdit />} />
-          <Route path="/es-revise/:id" element={<EstimateRevise />} />
+                <Route path="/so" element={<SoIndex />} />
         </Route>
       </Routes>
     </Router>

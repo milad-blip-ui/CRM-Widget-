@@ -1,62 +1,9 @@
-const updateEstimate = async (estimateId, payload, customerAttachments, privateAttachments) => {
-  try {
-    const connection = "crmwidgetconnection";
-    // Make API call to Zoho Creator
-    const response = await window.ZOHO.CRM.CONNECTION.invoke(connection, {
-      parameters:{
-        ...payload
-      },
-      method: "PATCH",
-      url: `https://www.zohoapis.com/creator/v2.1/data/sst1source/source-erp/report/QT_For_CRM_widget_Update/${estimateId}`,
-      param_type: 2,
-    })
-    //Estimate_2_0_Report
-    console.log("update response",response);
-    if(response.details.statusMessage.code === 3000){
-      console.log("Main record response", response.details.statusMessage);
-      const recordId = response?.details?.statusMessage?.data?.ID;
-      const result = await window.ZOHO.CRM.API.insertRecord({
-        Entity: "Upload_File",
-        APIData: {
-          Name: recordId,
-        }
-      });
-      console.log("UPload file Id",result)
-      const CRMID = result?.data[0]?.details?.id;
-      for (const item of customerAttachments) {
-        if (item.file) {
-        const customerAttUpload = await window.ZOHO.CRM.API.attachFile({
-            Entity: "Upload_File",
-            RecordID: CRMID,
-            File: { Name: `CA_${item.fileName}`, Content: item.file },
-          })
-          console.log("customerAttUpload result",customerAttUpload); 
-        }
-      }
-      for (const item of privateAttachments) {
-        if (item.file) {
-        const privateAttUpload = await window.ZOHO.CRM.API.attachFile({
-            Entity: "Upload_File",
-            RecordID: CRMID,
-            File: { Name: `PA_${item.fileName}`, Content: item.file },
-          })
-          console.log("privateAttUpload result",privateAttUpload); 
-        }
-      }
-     const updateAttachment = await window.ZOHO.CRM.API.updateRecord({
-      Entity:"Upload_File",
-      APIData:{id: CRMID,hasAttachment: true}
-    })
-    console.log("updateAttachment",updateAttachment)
+import React from 'react'
 
-    return response.details.statusMessage;
-    }
-    
+const updateEstimate = () => {
+  return (
+    <div>updateEstimate</div>
+  )
+}
 
-  } catch (error) {
-    console.error(error);
-    throw error;
-  }
-};
-
-export default updateEstimate;
+export default updateEstimate

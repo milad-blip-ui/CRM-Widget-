@@ -1,12 +1,9 @@
-export const PageSpinner = () => {
+import React from 'react'
+
+const Spiner = () => {
   return (
-    <div className='fixed inset-0 z-999999 flex items-center justify-center'>
-      <div className='loader'></div>
-    </div>
+    <div>Spiner</div>
   )
 }
 
-
-
-
-
+export default Spiner
