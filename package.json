@@ -20,7 +20,7 @@
     "jszip": "^3.10.1",
     "pdfjs-dist": "^3.4.120",
     "react": "^18.3.1",
-    "react-datepicker": "^8.2.1",
+    "react-datepicker": "^8.3.0",
     "react-dom": "^18.3.1",
     "react-hot-toast": "^2.5.1",
     "react-paginate": "^8.3.0",

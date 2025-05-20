@@ -1,5 +1,6 @@
 // import React, { useState, useEffect, useRef, useMemo, useContext } from "react";
-// import { useNavigate } from "react-router-dom";
+// import { useParams, useNavigate } from "react-router-dom";
+// import { AppContext } from "../context/AppContext";
 // import toast from "react-hot-toast";
 // import JoditEditor from "jodit-react";
 // import DatePicker from "react-datepicker";
@@ -7,9 +8,9 @@
 // import CustomDropdown from "../components/shared/CustomDropdown";
 // import AccountDropdown from "../components/shared/AccountDropdown";
 // import { formatDate } from "../utils/dateUtils";
-// import createEstimate from "../services/createEstimate";
 // import { PageSpinner } from "../components/shared/Spinner";
-// import { AppContext } from "../context/AppContext";
+// import updateEstimate from "../services/updateEstimate";
+
 // import DeliveryVehicleSection from "../components/PostProductionOptions/DeliveryVehicleSection";
 // import RentedTruckSection from "../components/PostProductionOptions/RentedTruckSection";
 // import CustomerPickupSection from "../components/PostProductionOptions/CustomerPickupSection";
@@ -18,19 +19,38 @@
 // import CustomerAccountSection from "../components/PostProductionOptions/CustomerAccountSection";
 // import FreightDeliverySection from "../components/PostProductionOptions/FreightDeliverySection";
 // import InstallSection from "../components/PostProductionOptions/InstallSection";
-// const Create = ({ placeholder }) => {
+// // Utility function for shallow comparison
+// function shallowEqual(obj1, obj2) {
+//   if (obj1 === obj2) return true;
+//   if (
+//     typeof obj1 !== "object" ||
+//     obj1 === null ||
+//     typeof obj2 !== "object" ||
+//     obj2 === null
+//   ) {
+//     return false;
+//   }
+//   const keys1 = Object.keys(obj1);
+//   const keys2 = Object.keys(obj2);
+//   if (keys1.length !== keys2.length) return false;
+//   for (const key of keys1) {
+//     if (obj1[key] !== obj2[key]) return false;
+//   }
+//   return true;
+// }
+
+// const Edit = ({ placeholder }) => {
+//   const { id } = useParams();
 //   const [data, setData] = useState(null);
-//   const { addEstimateById } = useContext(AppContext);
+//   const { allItems, updateEstimateById } = useContext(AppContext);
 //   const navigate = useNavigate();
-//   const [createSpinner, setCreateSpinner] = useState(false);
+//   const [editSpinner, setEditSpinner] = useState(false);
 //   const [forceUpdate, setForceUpdate] = useState(false);
-
-//   const [fetchedData, setFetchedData] = useState([]);
-//   const [selectedAddress, setSelectedAddress] = useState(null);
-
+//   const [isLoading, setIsLoading] = useState(true);
+//   const [estimateData, setEstimateData] = useState(null);
+//   const [loadingCreatorData, setLoadingCreatorData] = useState(true);
 //   const [newContactOptions, setNewContactOptions] = useState([]);
 //   const [loadingAccountDetails, setLoadingAccountDetails] = useState(false);
-//   const [loadingCreatorData, setLoadingCreatorData] = useState(true);
 //   useEffect(() => {
 //     const fetchData = async () => {
 //       try {
@@ -70,199 +90,68 @@
 //     fetchData();
 //   }, []);
 
-//   // 1. Define your tax rate options array
-//   const taxRateOptions = [
-//     { value: "0%", label: "0%" },
-//     { value: "6%", label: "6%" },
-//     // Add other tax rate options as needed
-//   ];
-
-//   // 1. Define your options array
-//   const hasCustomerPoOptions = [
-//     { value: "Yes", label: "Yes" },
-//     { value: "No", label: "No" },
-//     // Add other options if needed
-//   ];
-//   const designProofOptions = [
-//     { value: "Yes", label: "Yes" },
-//     { value: "No", label: "No" },
-//   ];
-//   // 1. First define your options array
-//   const postProductionOptions = [
-//     { value: "We Deliver (Our Vehicle)", label: "We Deliver (Our Vehicle)" },
-//     { value: "We Deliver (Rented Truck)", label: "We Deliver (Rented Truck)" },
-//     { value: "Customer Pickup", label: "Customer Pickup" },
-//     { value: "Dropship", label: "Dropship" },
-//     {
-//       value: "Send UPS/Fedex (Our Account)",
-//       label: "Send UPS/Fedex (Our Account)",
-//     },
-//     {
-//       value: "Send UPS/Fedex (Customer Account)",
-//       label: "Send UPS/Fedex (Customer Account)",
-//     },
-//     { value: "Freight Delivery", label: "Freight Delivery" },
-//     { value: "Install", label: "Install" },
-//     { value: "Unknown", label: "Unknown" },
-//   ];
-
-//   //Product Type Data
-//   // Memoize productTypeOptions since it doesn't change often
-//   const productTypeOptions = useMemo(
-//     () =>
-//       data?.allProductTypes?.data?.map((type) => ({
-//         value: type.ID,
-//         label: type.Type_field,
-//         taxable: type.Taxable === "true",
-//       })) || [],
-//     [data?.allProductTypes?.data]
-//   );
-
-//   const fetchAccountDetails = async (accountId) => {
-//     setLoadingAccountDetails(true);
-//     try {
-//       // Fetch the account details
-//       const accountResponse = await window.ZOHO.CRM.API.getRecord({
-//         Entity: "Accounts",
-//         RecordID: accountId,
-//       });
-//       const accountData = accountResponse.data[0];
-
-//       // Update formData with vendor number
-//       setFormData((prev) => ({
-//         ...prev,
-//         vendorNumber: accountData.Vendor_number || "",
-//       }));
-
-//       const addressData = [];
-
-//       // Fetch contacts
-//       const contactsResponse = await window.ZOHO.CRM.API.getRelatedRecords({
-//         Entity: "Accounts",
-//         RecordID: accountId,
-//         RelatedList: "Contacts",
-//       });
-//       console.log("contactsResponse", contactsResponse);
-//       // Handle empty or invalid response
-//       if (
-//         !contactsResponse ||
-//         !contactsResponse.data ||
-//         !Array.isArray(contactsResponse.data)
-//       ) {
-//         console.warn("No contacts data found or invalid response structure");
-//         setNewContactOptions([]); // Set empty array if no data
-//       } else {
-//         setNewContactOptions(
-//           contactsResponse.data
-//             // Filter out contacts without names
-//             .filter((contact) => contact.First_Name || contact.Last_Name)
-//             .map((contact) => ({
-//               value: `${contact.First_Name || ""} ${
-//                 contact.Last_Name || ""
-//               }`.trim(),
-//               label: `${contact.First_Name || ""} ${
-//                 contact.Last_Name || ""
-//               }`.trim(),
-//             }))
-//         );
-//       }
-
-//       // 1. Add main account address if exists
-//       const mainAddress = {
-//         name: accountData?.Account_Name,
-//         Billing_Street: accountData?.Billing_Street,
-//         Billing_City: accountData?.Billing_City,
-//         Billing_State: accountData?.Billing_State,
-//         Billing_Code: accountData?.Billing_Code,
-//         Shipping_Street: accountData?.Shipping_Street,
-//         Shipping_City: accountData?.Shipping_City,
-//         Shipping_State: accountData?.Shipping_State,
-//         Shipping_Code: accountData?.Shipping_Code,
-//       };
-//       addressData.push(mainAddress);
-//       setSelectedAddress(mainAddress);
-
-//       // Update formData with the main address details
-//       setFormData((prev) => ({
-//         ...prev,
-//         locationName: accountData?.Account_Name || "", // Set account name as location
-//         billingAddress: {
-//           street: accountData?.Billing_Street || "",
-//           city: accountData?.Billing_City || "",
-//           state: accountData?.Billing_State || "",
-//           zip: accountData?.Billing_Code || "",
-//         },
-//         shippingAddress: {
-//           street: accountData?.Shipping_Street || "",
-//           city: accountData?.Shipping_City || "",
-//           state: accountData?.Shipping_State || "",
-//           zip: accountData?.Shipping_Code || "",
-//         },
-//       }));
-//       // Fetch addresses
-//       const addressesResponse = await window.ZOHO.CRM.API.getRelatedRecords({
-//         Entity: "Accounts",
-//         RecordID: accountId,
-//         RelatedList: "Address",
-//       });
-//       console.log("addressesResponse", addressesResponse);
-//       // 2. Add additional addresses if exist
-//       // Check if response has valid data before processing
-//       if (
-//         addressesResponse &&
-//         addressesResponse.data &&
-//         Array.isArray(addressesResponse.data)
-//       ) {
-//         addressesResponse.data.forEach((address) => {
-//           // Only push address if it has at least one field with data
-//           if (
-//             address.Name ||
-//             address.Billing_Street ||
-//             address.Shipping_Street
-//           ) {
-//             addressData.push({
-//               name: address.Name || "",
-//               Billing_Street: address.Billing_Street || "",
-//               Billing_City: address.Billing_City || "",
-//               Billing_State: address.Billing_State || "",
-//               Billing_Code: address.Billing_Code || "",
-//               Shipping_Street: address.Shipping_Street || "",
-//               Shipping_City: address.Shipping_City || "",
-//               Shipping_State: address.Shipping_State || "",
-//               Shipping_Code: address.Shipping_Code || "",
-//             });
-//           }
+//   useEffect(() => {
+//     const fetchEstimateData = async () => {
+//       try {
+//         const estimate = allItems.find((item) => {
+//           return item.ID === id;
 //         });
-//       } else {
-//         console.warn("No valid addresses data found in response");
-//       }
-//       setFetchedData(addressData);
-//     } catch (error) {
-//       console.error("Error:", error);
-//       toast.error("Failed to load account details");
-//     } finally {
-//       setLoadingAccountDetails(false);
-//     }
-//   };
+//         if (estimate) {
+//           setEstimateData(estimate);
 
-//   // 1. Filter employees with Sales profile and transform data
-//   const salesTeam = useMemo(
-//     () =>
-//       data?.allEmployees?.data
-//         ?.filter((employee) => employee.Profile?.zc_display_value === "Sales")
-//         ?.map((employee) => ({
-//           value: employee.ID,
-//           label:
-//             employee.Name_SL ||
-//             `${employee.Name?.first_name} ${employee.Name?.last_name}`.trim(),
-//         })) || [],
-//     [data?.allEmployees?.data]
-//   );
+//           // Initialize customer attachments
+//           if (estimate.Customer_Attachments?.length) {
+//             setCustomerAttachments(
+//               estimate.Customer_Attachments.map((attach) => ({
+//                 id: attach.id,
+//                 file: null, // Keep as null since we can't recreate File objects from JSON
+//                 fileName: attach.fileName || "",
+//                 fileDescription: attach.fileDescription || "",
+//               }))
+//             );
+//           } else {
+//             setCustomerAttachments([
+//               { id: 1, file: null, fileName: "", fileDescription: "" },
+//             ]);
+//           }
+
+//           // Initialize private attachments
+//           if (estimate.Private_Attachments?.length) {
+//             setPrivateAttachments(
+//               estimate.Private_Attachments.map((attach) => ({
+//                 id: attach.id,
+//                 file: null, // Keep as null since we can't recreate File objects from JSON
+//                 fileName: attach.fileName || "",
+//                 fileDescription: attach.fileDescription || "",
+//               }))
+//             );
+//           } else {
+//             setPrivateAttachments([
+//               { id: 1, file: null, fileName: "", fileDescription: "" },
+//             ]);
+//           }
+//         } else {
+//           toast.error("Failed to fetch estimate data");
+//         }
+//       } catch (error) {
+//         console.error("Error fetching estimate:", error);
+//         toast.error("An error occurred while fetching the estimate");
+//       } finally {
+//         setIsLoading(false);
+//       }
+//     };
+
+//     fetchEstimateData();
+//   }, [id]);
+
+//   // Address handling
+//   const [fetchedData, setFetchedData] = useState([]);
+//   const [selectedAddress, setSelectedAddress] = useState(null);
+
 //   // Handle address selection change
 //   const handleAddressChange = (selectedName) => {
 //     const selected = fetchedData.find((addr) => addr.name === selectedName);
 //     setSelectedAddress(selected);
-//     // Update billing/shipping addresses in form state if needed
 //     if (selected) {
 //       setFormData((prev) => ({
 //         ...prev,
@@ -282,31 +171,8 @@
 //       }));
 //     }
 //   };
-//   //End address section
 
-//   //Note section
-//   // State to control visibility of editors
-//   const [showPublicNotes, setShowPublicNotes] = useState(false);
-//   const [showPrivateNotes, setShowPrivateNotes] = useState(false);
-//   const [openDescriptionEditorId, setOpenDescriptionEditorId] = useState(null);
-
-//   // Refs for editors
-//   const editorPrivate = useRef(null);
-//   const editorPublic = useRef(null);
-//   // Editor configuration
-//   const config = useMemo(
-//     () => ({
-//       readonly: false, // all options from https://xdsoft.net/jodit/docs/,
-//       placeholder: "Start typings...",
-//       height: "600px",
-//       showCharsCounter: false, // Hide character counter
-//       showWordsCounter: false, // Hide word counter
-//       showXPathInStatusbar: false, // Hide XPath in status bar
-//       removeButtons: ["file", "speechRecognize"],
-//     }),
-//     [placeholder]
-//   );
-
+//   // Form data state
 //   //Form data
 //   const [formData, setFormData] = useState({
 //     quoteDate: new Date(),
@@ -426,42 +292,316 @@
 //     Installation_due_date: "", // datepicker
 //   });
 
-//   //Handler for form data
-//   const handleChange = (e) => {
-//     const { name, value } = e.target;
-//     setFormData((prev) => ({
-//       ...prev,
-//       [name]: value,
-//     }));
-//   };
+//   // Initialize form with estimate data
 
-//   // Handler for date picker
-//   const handleDateChange = (date) => {
-//     // Check if date is valid
-//     if (!date || isNaN(new Date(date).getTime())) {
-//       toast.error("Invalid date selected");
-//       return;
+//   useEffect(() => {
+//     if (!estimateData) return;
+//     const initialFormData = {
+//       quoteDate: estimateData.SO_Date || new Date(),
+//       quoteName: estimateData.SO_name || "",
+//       crmAccountName: estimateData.CRM_Account_Name,
+//       postProduction: estimateData.Post_production || "",
+//       leadTime: estimateData.Lead_time_from_approval_Business_Days || "",
+//       taxRate: estimateData.Tax_rate || "",
+//       locationName: estimateData.Widget_Location_Name,
+//       poNumber: estimateData.PO_Number || "",
+//       salesperson: estimateData.Salesperson || "",
+//       vendorNumber: estimateData.Vendor_Number || "",
+//       crmContactName: estimateData.Widget_CRM_Contact_Name || "",
+//       hasCustomerPo: estimateData.Did_customer_provide_a_customer_PO || "",
+//       privateNotes: estimateData.Private_Notes_RT || "",
+//       publicNotes: estimateData.Notes_Public_RT || "",
+//       isHotJob: estimateData.Is_Hot_Job || "",
+//       billingAddress: {
+//         street: estimateData.Bill_To?.address_line_1,
+//         city: estimateData.Bill_To?.district_city,
+//         state: estimateData.Bill_To?.state_province,
+//         zip: estimateData.Bill_To?.postal_Code,
+//       },
+//       shippingAddress: {
+//         street: estimateData.Ship_To?.address_line_1,
+//         city: estimateData.Ship_To?.district_city,
+//         state: estimateData.Ship_To?.state_province,
+//         zip: estimateData.Ship_To?.postal_Code,
+//       },
+//       crmAccountNameString: estimateData.CRM_Account_Name_String,
+//       salespersonName: estimateData.SalespersonName,
+//       isDesignProofNeeded: estimateData.is_Design_Proof_needed,
+//       approvedOn: estimateData.Approved_On,
+//       commitmentDate: estimateData.Our_Commitment_Date,
+//       customerDueDate: estimateData.Customer_due_date,
+//       ///////////////////////////////////////////////////////
+//       Delivery_address: estimateData.Delivery_address || {
+//         address_line_1: "",
+//         address_line_2: "",
+//         district_city: "",
+//         state_province: "",
+//         postal_Code: "",
+//       },
+//       Desired_delivery_date: estimateData.Desired_delivery_date
+//         ? formatDate(estimateData.Desired_delivery_date)
+//         : null,
+
+//       Vehicle_number: estimateData.Vehicle_number || "",
+//       Delivery_Address_rented_truck:
+//         estimateData.Delivery_Address_rented_truck || {
+//           address_line_1: "",
+//           address_line_2: "",
+//           district_city: "",
+//           state_province: "",
+//           postal_Code: "",
+//         },
+//       Desired_delivery_date_Rented_truck:
+//         estimateData.Desired_delivery_date_Rented_truck
+//           ? formatDate(estimateData.Desired_delivery_date_Rented_truck)
+//           : null,
+
+//       Do_we_know_who_is_picking_up: estimateData.Do_we_know_who_is_picking_up,
+//       Name: estimateData.Name,
+//       Do_we_know_when_will_customer_pickup:
+//         estimateData.Do_we_know_when_will_customer_pickup,
+//       PickUp_Date: estimateData.PickUp_Date
+//         ? formatDate(estimateData.PickUp_Date)
+//         : null,
+
+//       Ship_to_address: estimateData.Ship_to_address || {
+//         address_line_1: "",
+//         address_line_2: "",
+//         district_city: "",
+//         state_province: "",
+//       },
+//       Where_will_it_ship_from: estimateData.Where_will_it_ship_from,
+//       Need_Multiple_Locations_Dropship:
+//         estimateData.Need_Multiple_Locations_Dropship,
+
+//       Our_Account: estimateData.Our_Account,
+//       Next_day_shipment_needed: estimateData.Next_day_shipment_needed,
+//       Regular_Ground_shipment: estimateData.Regular_Ground_shipment,
+//       Charge_normal_markup: estimateData.Charge_normal_markup,
+//       Account_Numer: estimateData.Account_Numer,
+//       Need_Multiple_Locations_Send_UPS_Our_Account:
+//         estimateData.Need_Multiple_Locations_Send_UPS_Our_Account,
+
+//       Customer_account: estimateData.Customer_account,
+//       Need_Multiple_Locations_Send_UPS_customer:
+//         estimateData.Need_Multiple_Locations_Send_UPS_customer,
+//       Date_of_freight_pickup_required_to_meet_customer_due_date:
+//         estimateData.Date_of_freight_pickup_required_to_meet_customer_due_date
+//           ? formatDate(
+//               estimateData.Date_of_freight_pickup_required_to_meet_customer_due_date
+//             )
+//           : null,
+
+//       Pallet_size_needed_provide_estimate:
+//         estimateData.Pallet_size_needed_provide_estimate,
+//       Who_will_arrange_freight_pickup:
+//         estimateData.Who_will_arrange_freight_pickup,
+//       What_is_customer_account_number_to_charge_for_shipping_amount:
+//         estimateData.What_is_customer_account_number_to_charge_for_shipping_amount,
+
+//       Type_of_Work_Needed: estimateData.Type_of_Work_Needed,
+//       Install_Summary_of_Work: estimateData.Install_Summary_of_Work,
+//       Manufacture_Type: estimateData.Manufacture_Type,
+//       Miss_DIG_required1: estimateData.Miss_DIG_required1,
+//       Install_type: estimateData.Install_type,
+//       Sign_Permit_Required: estimateData.Sign_Permit_Required,
+//       Electrical_Permit_Required: estimateData.Electrical_Permit_Required,
+//       Electrical_Connection_Made_by_Us:
+//         estimateData.Electrical_Connection_Made_by_Us,
+//       Has_the_wall_recently_been_painted:
+//         estimateData.Has_the_wall_recently_been_painted,
+//       What_floor_s_will_Signage_be_installed:
+//         estimateData.What_floor_s_will_Signage_be_installed,
+//       Is_There_a_Working_Elevator_Available:
+//         estimateData.Is_There_a_Working_Elevator_Available,
+//       Is_Rental_Equipment_Needed: estimateData.Is_Rental_Equipment_Needed,
+//       In_House_Large_Equipment_Needed:
+//         estimateData.In_House_Large_Equipment_Needed,
+//       In_house_equipment: estimateData.In_house_equipment,
+//       Any_obstruction_in_the_install_area:
+//         estimateData.Any_obstruction_in_the_install_area,
+//       Rental_Equipment: estimateData.Rental_Equipment,
+//       TYPE_OF_WALL_SURFACE_BEING_INSTALLED:
+//         estimateData.TYPE_OF_WALL_SURFACE_BEING_INSTALLED,
+//       Whta_type_of_Hardware_Specific:
+//         estimateData.Whta_type_of_Hardware_Specific,
+//       URL_Link1: estimateData.URL_Link1,
+//       URL_Link2: estimateData.URL_Link2,
+//       Preferred_Date_1: estimateData.Preferred_Date_1
+//         ? formatDate(estimateData.Preferred_Date_1)
+//         : null,
+//       Preferred_Date_2: estimateData.Preferred_Date_2
+//         ? formatDate(estimateData.Preferred_Date_2)
+//         : null,
+//       Preferred_Time: estimateData.Preferred_Time,
+//       Is_Hardware_Needed: estimateData.Is_Hardware_Needed,
+//       Hardware_Grade: estimateData.Hardware_Grade,
+//       Appprox_fabrication_time_Hours:
+//         estimateData.Appprox_fabrication_time_Hours,
+//       How_many_installers_needed2: estimateData.How_many_installers_needed2,
+//       Number_of_Visits_needed: estimateData.Number_of_Visits_needed,
+//       Estimated_hours_of_travel: estimateData.Estimated_hours_of_travel,
+//       Estimated_hours_on_site: estimateData.Estimated_hours_on_site,
+//       Production_due_date: estimateData.Production_due_date
+//         ? formatDate(estimateData.Production_due_date)
+//         : null,
+//       Fabrication_due_date: estimateData.Fabrication_due_date
+//         ? formatDate(estimateData.Fabrication_due_date)
+//         : null,
+//       Installation_due_date: estimateData.Installation_due_date
+//         ? formatDate(estimateData.Installation_due_date)
+//         : null,
+//     };
+
+//     setFormData((prev) =>
+//       shallowEqual(prev, initialFormData) ? prev : initialFormData
+//     );
+
+//     fetchAccountDetails(
+//       estimateData.CRM_Account_Name,
+//       estimateData.Shipping_Name
+//     );
+//   }, [estimateData]);
+
+//   const fetchAccountDetails = async (accountId, estimateAddress) => {
+//     console.log(accountId, "-", estimateAddress);
+//     setLoadingAccountDetails(true);
+//     try {
+//       // Fetch the account details
+//       const accountResponse = await window.ZOHO.CRM.API.getRecord({
+//         Entity: "Accounts",
+//         RecordID: accountId,
+//       });
+//       const accountData = accountResponse.data[0];
+
+//       if (!estimateAddress) {
+//         // Update formData with vendor number
+//         setFormData((prev) => ({
+//           ...prev,
+//           vendorNumber: accountData.Vendor_number || "",
+//         }));
+//       }
+
+//       const addressData = [];
+
+//       // Fetch contacts
+//       const contactsResponse = await window.ZOHO.CRM.API.getRelatedRecords({
+//         Entity: "Accounts",
+//         RecordID: accountId,
+//         RelatedList: "Contacts",
+//       });
+
+//       if (
+//         !contactsResponse ||
+//         !contactsResponse.data ||
+//         !Array.isArray(contactsResponse.data)
+//       ) {
+//         console.warn("No contacts data found or invalid response structure");
+//         setNewContactOptions([]); // Set empty array if no data
+//       } else {
+//         setNewContactOptions(
+//           contactsResponse.data
+//             .filter((contact) => contact.First_Name || contact.Last_Name)
+//             .map((contact) => ({
+//               value: `${contact.First_Name || ""} ${
+//                 contact.Last_Name || ""
+//               }`.trim(),
+//               label: `${contact.First_Name || ""} ${
+//                 contact.Last_Name || ""
+//               }`.trim(),
+//             }))
+//         );
+//       }
+
+//       // 1. Get the main account address
+//       const mainAddress = {
+//         name: accountData?.Account_Name,
+//         Billing_Street: accountData?.Billing_Street,
+//         Billing_City: accountData?.Billing_City,
+//         Billing_State: accountData?.Billing_State,
+//         Billing_Code: accountData?.Billing_Code,
+//         Shipping_Street: accountData?.Shipping_Street,
+//         Shipping_City: accountData?.Shipping_City,
+//         Shipping_State: accountData?.Shipping_State,
+//         Shipping_Code: accountData?.Shipping_Code,
+//       };
+
+//       // Add the main address to the address data
+//       addressData.push(mainAddress);
+//       if (!estimateAddress) {
+//         // Update formData with the main address details
+//         setFormData((prev) => ({
+//           ...prev,
+//           locationName: accountData?.Account_Name || "",
+//           billingAddress: {
+//             street: accountData?.Billing_Street || "",
+//             city: accountData?.Billing_City || "",
+//             state: accountData?.Billing_State || "",
+//             zip: accountData?.Billing_Code || "",
+//           },
+//           shippingAddress: {
+//             street: accountData?.Shipping_Street || "",
+//             city: accountData?.Shipping_City || "",
+//             state: accountData?.Shipping_State || "",
+//             zip: accountData?.Shipping_Code || "",
+//           },
+//         }));
+//       }
+//       // Fetch addresses
+//       const addressesResponse = await window.ZOHO.CRM.API.getRelatedRecords({
+//         Entity: "Accounts",
+//         RecordID: accountId,
+//         RelatedList: "Address",
+//       });
+
+//       if (
+//         addressesResponse &&
+//         addressesResponse.data &&
+//         Array.isArray(addressesResponse.data)
+//       ) {
+//         addressesResponse.data.forEach((address) => {
+//           if (
+//             address.Name ||
+//             address.Billing_Street ||
+//             address.Shipping_Street
+//           ) {
+//             addressData.push({
+//               name: address.Name || "",
+//               Billing_Street: address.Billing_Street || "",
+//               Billing_City: address.Billing_City || "",
+//               Billing_State: address.Billing_State || "",
+//               Billing_Code: address.Billing_Code || "",
+//               Shipping_Street: address.Shipping_Street || "",
+//               Shipping_City: address.Shipping_City || "",
+//               Shipping_State: address.Shipping_State || "",
+//               Shipping_Code: address.Shipping_Code || "",
+//             });
+//           }
+//         });
+//       } else {
+//         console.warn("No valid addresses data found in response");
+//       }
+
+//       setFetchedData(addressData);
+
+//       // Set the selected address based on the estimate address if provided
+//       if (estimateAddress) {
+//         const selectedAddr = addressData.find(
+//           (addr) => addr.name === estimateAddress
+//         );
+//         console.log(selectedAddr);
+//         if (selectedAddr) {
+//           setSelectedAddress(selectedAddr);
+//         }
+//       } else {
+//         setSelectedAddress(mainAddress); // Use main address by default
+//       }
+//     } catch (error) {
+//       console.error("Error:", error);
+//       toast.error("Failed to load account details");
+//     } finally {
+//       setLoadingAccountDetails(false);
 //     }
-//     setFormData((prev) => ({
-//       ...prev,
-//       quoteDate: date,
-//     }));
-//   };
-
-//   // Handler for private notes editor
-//   const handlePrivateNotesChange = (newContent) => {
-//     setFormData((prev) => ({
-//       ...prev,
-//       privateNotes: newContent,
-//     }));
-//   };
-
-//   // Handler for public notes editor
-//   const handlePublicNotesChange = (newContent) => {
-//     setFormData((prev) => ({
-//       ...prev,
-//       publicNotes: newContent,
-//     }));
 //   };
 
 //   // Items section
@@ -472,194 +612,76 @@
 //       Qty: "",
 //       Unit: "",
 //       Description_Rich_Text: "",
-//       Product_Type1: "", // New field for Product Type
-//       Piece_cost: "", // New field for Piece Cost
-//       Margin: "", // New field for Markup
-//       piecePrice: "0.00", // Initialize as string
-//       amount: "0.00", // Initialize as string
+//       Product_Type1: "",
+//       Piece_cost: "",
+//       Margin: "",
+//       piecePrice: "0.00",
+//       amount: "0.00",
+//       isPieceCostFocused: false,
+//       isMarkupFocused: false,
+//       Product_Type_Name: "",
 //     },
 //   ]);
 
-//   const addNewItem = () => {
-//     setItems([
-//       ...items,
+//   // Initialize items with estimate data
+//   useEffect(() => {
+//     if (!estimateData?.Item_Details?.length) return;
+//     const newItems = estimateData.Item_Details.map((item) => ({
+//       id: item.id || Math.random().toString(36).substr(2, 9),
+//       Item: item.Item || "",
+//       Qty: item.Qty || "",
+//       Unit: item.Unit || "",
+//       Description_Rich_Text: item.Description_Rich_Text || "",
+//       Product_Type1: item.Product_Type1 || "",
+//       Piece_cost: item.Piece_cost || "",
+//       Margin: item.Margin || "",
+//       piecePrice: item.piecePrice || "0.00",
+//       amount: item.amount || "0.00",
+//       isPieceCostFocused: false,
+//       isMarkupFocused: false,
+//       Product_Type_Name: item.Product_Type_Name,
+//     }));
+
+//     setItems((prev) => (shallowEqual(prev, newItems) ? prev : newItems));
+//   }, [estimateData?.Item_Details]);
+
+//   // Reference URLs
+//   const [referenceUrls, setReferenceUrls] = useState([
+//     { id: 1, url: "", description: "" },
+//   ]);
+
+//   // Initialize reference URLs
+//   useEffect(() => {
+//     if (!estimateData?.Reference_URL?.length) return;
+
+//     const newUrls = estimateData.Reference_URL.map((url, index) => ({
+//       id: index + 1,
+//       url: url.Url?.url || "",
+//       description: url.Description || "",
+//     }));
+
+//     setReferenceUrls((prev) => (shallowEqual(prev, newUrls) ? prev : newUrls));
+//   }, [estimateData?.Reference_URL]);
+//   const addNewReferenceUrl = () => {
+//     setReferenceUrls([
+//       ...referenceUrls,
 //       {
-//         id: items.length + 1,
-//         Item: "",
-//         Qty: "",
-//         Unit: "",
-//         Description_Rich_Text: "",
-//         Product_Type1: "",
-//         Piece_cost: "",
-//         Margin: "",
-//         piecePrice: "0.00", // Initialize as string
-//         amount: "0.00", // Initialize as string
-//         isPieceCostFocused: false, // Add this
-//         isMarkupFocused: false,
+//         id: referenceUrls.length + 1,
+//         url: "",
+//         description: "",
 //       },
 //     ]);
 //   };
-
-//   const removeItem = (id) => {
-//     setItems(items.filter((item) => item.id !== id));
-//   };
-
-//   // Handler for Product Type change
-//   const handleProductTypeChange = (id, value) => {
-//     const selectedProductType = productTypeOptions.find(
-//       (option) => option.value === value
-//     );
-//     setItems(
-//       items.map((item) =>
-//         item.id === id
-//           ? {
-//               ...item,
-//               Product_Type1: value,
-//               Product_Type_Name: selectedProductType?.label || "",
-//             }
-//           : item
-//       )
-//     );
-
-//     // Force recalculation by updating a dummy state
-//     setForceUpdate((prev) => !prev); // Add this state at the top: const [forceUpdate, setForceUpdate] = useState(false);
-//   };
-
-//   // Handler for Piece Cost change
-//   const handlePieceCostChange = (id, value) => {
-//     setItems((prevItems) => {
-//       const newItems = prevItems.map((item) => {
-//         if (item.id === id) {
-//           const Piece_cost = parseFloat(value) || 0;
-//           const Margin = parseFloat(item.Margin) || 0;
-//           const qty = parseFloat(item.Qty) || 0;
-//           const piecePrice = Piece_cost * (1 + Margin / 100);
-//           const amount = piecePrice * qty;
-
-//           return {
-//             ...item,
-//             Piece_cost: value,
-//             piecePrice: piecePrice.toFixed(2),
-//             amount: amount.toFixed(2),
-//           };
-//         }
-//         return item;
-//       });
-//       return newItems;
-//     });
-//   };
-
-//   // Handler for Markup change
-//   const handleMarkupChange = (id, value) => {
-//     setItems((prevItems) => {
-//       const newItems = prevItems.map((item) => {
-//         if (item.id === id) {
-//           const Piece_cost = parseFloat(item.Piece_cost) || 0;
-//           const Margin = parseFloat(value) || 0;
-//           const qty = parseFloat(item.Qty) || 0;
-//           const piecePrice = Piece_cost * (1 + Margin / 100);
-//           const amount = piecePrice * qty;
-
-//           return {
-//             ...item,
-//             Margin: value,
-//             piecePrice: piecePrice.toFixed(2),
-//             amount: amount.toFixed(2),
-//           };
-//         }
-//         return item;
-//       });
-//       return newItems;
-//     });
-//   };
-
-//   const handlePieceCostFocus = (id) => {
-//     setItems(
-//       items.map((item) =>
-//         item.id === id ? { ...item, isPieceCostFocused: true } : item
-//       )
-//     );
-//   };
-
-//   const handlePieceCostBlur = (id) => {
-//     setItems(
-//       items.map((item) =>
-//         item.id === id ? { ...item, isPieceCostFocused: false } : item
-//       )
-//     );
-//   };
-
-//   const handleMarkupFocus = (id) => {
-//     setItems(
-//       items.map((item) =>
-//         item.id === id ? { ...item, isMarkupFocused: true } : item
-//       )
-//     );
-//   };
-
-//   const handleMarkupBlur = (id) => {
-//     setItems(
-//       items.map((item) =>
-//         item.id === id ? { ...item, isMarkupFocused: false } : item
-//       )
-//     );
-//   };
-
-//   // Handler for Quantity change
-//   const handleQtyChange = (id, value) => {
-//     setItems((prevItems) => {
-//       const newItems = prevItems.map((item) => {
-//         if (item.id === id) {
-//           const Piece_cost = parseFloat(item.Piece_cost) || 0;
-//           const Margin = parseFloat(item.Margin) || 0;
-//           const qty = parseFloat(value) || 0;
-//           const piecePrice = Piece_cost * (1 + Margin / 100);
-//           const amount = piecePrice * qty;
-
-//           return {
-//             ...item,
-//             Qty: value,
-//             piecePrice: piecePrice.toFixed(2),
-//             amount: amount.toFixed(2),
-//           };
-//         }
-//         return item;
-//       });
-//       return newItems;
-//     });
-//   };
-
-//   // Unit options
-//   const unitOptions = [
-//     "Box",
-//     "Each",
-//     "Feet",
-//     "Pieces",
-//     "Sheet",
-//     "Sq Feet",
-//     "Units",
-//   ];
-
-//   // Handler for opening the description editor for a specific item
-//   const handleOpenDescriptionEditor = (id) => {
-//     setOpenDescriptionEditorId(id);
-//   };
-
-//   // Handler for closing the description editor
-//   const handleCloseDescriptionEditor = () => {
-//     setOpenDescriptionEditorId(null);
-//   };
-
-//   // Handler for updating the description of an item
-//   const handleDescriptionChange = (id, newContent) => {
-//     setItems(
-//       items.map((item) =>
-//         item.id === id ? { ...item, Description_Rich_Text: newContent } : item
-//       )
-//     );
-//   };
-
-//   // Add these state variables at the top of your component
+//   // Accounting summary
+//   useEffect(() => {
+//     if (estimateData && estimateData.Accounting_Summary) {
+//       setAccountingSummary(prevSummary => ({
+//         ...prevSummary,
+//         downPaymentPercent: estimateData.Accounting_Summary.downPaymentPercent,
+//         // Update other properties from estimateData here if needed
+//       }));
+//     }
+//   }, [estimateData]);
 //   const [accountingSummary, setAccountingSummary] = useState({
 //     totalCost: 0,
 //     subTotal: 0,
@@ -674,7 +696,8 @@
 //     balanceDue: 0,
 //     totalReceivable: 0,
 //   });
-//   // 1. First, calculate derived values without setting state
+
+//   // Calculate derived values
 //   const calculateDerivedValues = (items, taxRate, downPaymentPercent) => {
 //     const updatedItems = items.map((item) => {
 //       const Piece_cost = parseFloat(item.Piece_cost) || 0;
@@ -740,8 +763,16 @@
 //       },
 //     };
 //   };
-
-//   // 2. Use useMemo to memoize the calculations
+//   const productTypeOptions = useMemo(
+//     () =>
+//       data?.allProductTypes?.data?.map((type) => ({
+//         value: type.ID,
+//         label: type.Type_field,
+//         taxable: type.Taxable === "true",
+//       })) || [],
+//     [data?.allProductTypes?.data]
+//   );
+//   // Memoize calculations
 //   const derivedValues = useMemo(() => {
 //     return calculateDerivedValues(
 //       items,
@@ -755,7 +786,7 @@
 //     forceUpdate,
 //   ]);
 
-//   // Call this whenever items, tax rate, or down payment changes
+//   // Update accounting summary
 //   useEffect(() => {
 //     setAccountingSummary((prev) => ({
 //       ...prev,
@@ -763,256 +794,82 @@
 //     }));
 //   }, [derivedValues.summary]);
 
-//   // Update your Down Payment % input to handle changes
-//   const handleDownPaymentChange = (e) => {
-//     const value = parseFloat(e.target.value) || 0;
-//     setAccountingSummary((prev) => ({
+//   // Dropdown options
+//   const taxRateOptions = [
+//     { value: "0%", label: "0%" },
+//     { value: "6%", label: "6%" },
+//   ];
+
+//   const hasCustomerPoOptions = [
+//     { value: "Yes", label: "Yes" },
+//     { value: "No", label: "No" },
+//   ];
+//   const designProofOptions = [
+//     { value: "Yes", label: "Yes" },
+//     { value: "No", label: "No" },
+//   ];
+//   const postProductionOptions = [
+//     { value: "We Deliver (Our Vehicle)", label: "We Deliver (Our Vehicle)" },
+//     { value: "We Deliver (Rented Truck)", label: "We Deliver (Rented Truck)" },
+//     { value: "Customer Pickup", label: "Customer Pickup" },
+//     { value: "Dropship", label: "Dropship" },
+//     {
+//       value: "Send UPS/Fedex (Our Account)",
+//       label: "Send UPS/Fedex (Our Account)",
+//     },
+//     { value: "Freight Delivery", label: "Freight Delivery" },
+//     { value: "Install", label: "Install" },
+//     { value: "Unknown", label: "Unknown" },
+//   ];
+//   const salesTeam = useMemo(
+//     () =>
+//       data?.allEmployees?.data
+//         ?.filter((employee) => employee.Profile?.zc_display_value === "Sales")
+//         ?.map((employee) => ({
+//           value: employee.ID,
+//           label:
+//             employee.Name_SL ||
+//             `${employee.Name?.first_name} ${employee.Name?.last_name}`.trim(),
+//         })) || [],
+//     [data?.allEmployees?.data]
+//   );
+
+//   const unitOptions = [
+//     "Box",
+//     "Each",
+//     "Feet",
+//     "Pieces",
+//     "Sheet",
+//     "Sq Feet",
+//     "Units",
+//   ];
+
+//   // Form handlers
+//   const handleChange = (e) => {
+//     const { name, value } = e.target;
+//     setFormData((prev) => ({
 //       ...prev,
-//       downPaymentPercent: value,
+//       [name]: value,
 //     }));
 //   };
-//   //Items section ended
 
-//   // Customer Attachments section
-//   const [customerAttachments, setCustomerAttachments] = useState([
-//     { id: 1, file: null, fileDescription: "", fileName: "" },
-//   ]);
-//   const attachmentFileInputRefs = useRef([]);
-
-//   const addNewCustomerAttachment = () => {
-//     setCustomerAttachments([
-//       ...customerAttachments,
-//       {
-//         id: customerAttachments.length + 1,
-//         file: null,
-//         fileDescription: "",
-//         fileName: "",
-//       },
-//     ]);
-//   };
-
-//   const removeCustomerAttachment = (id) => {
-//     setCustomerAttachments(
-//       customerAttachments.filter((attachment) => attachment.id !== id)
-//     );
-//   };
-
-//   const handleCustomerAttachmentFileChange = (id, event) => {
-//     const file = event.target.files[0];
-//     if (!file) return;
-
-//     // Validate file size (e.g., 5MB max)
-//     if (file.size > 5 * 1024 * 1024) {
-//       toast.error("File size must be less than 5MB");
+//   const handleDateChange = (date) => {
+//     if (!date || isNaN(new Date(date).getTime())) {
+//       toast.error("Invalid date selected");
 //       return;
 //     }
-//     setCustomerAttachments(
-//       customerAttachments.map((attachment) =>
-//         attachment.id === id
-//           ? { ...attachment, file, fileName: file.name }
-//           : attachment
-//       )
-//     );
+//     setFormData((prev) => ({
+//       ...prev,
+//       quoteDate: date,
+//     }));
 //   };
 
-//   const handleCustomerAttachmentFileClick = (index) => {
-//     attachmentFileInputRefs.current[index]?.click();
-//   };
-
-//   // Private Attachments section
-//   const [privateAttachments, setPrivateAttachments] = useState([
-//     { id: 1, file: null, fileDescription: "", fileName: "" },
-//   ]);
-//   const privateAttachmentFileInputRefs = useRef([]);
-
-//   const addNewPrivateAttachment = () => {
-//     setPrivateAttachments([
-//       ...privateAttachments,
+//   // Item handlers
+//   const addNewItem = () => {
+//     setItems((prev) => [
+//       ...prev,
 //       {
-//         id: privateAttachments.length + 1,
-//         file: null,
-//         fileDescription: "",
-//         fileName: "",
-//       },
-//     ]);
-//   };
-
-//   const removePrivateAttachment = (id) => {
-//     setPrivateAttachments(
-//       privateAttachments.filter((attachment) => attachment.id !== id)
-//     );
-//   };
-
-//   const handlePrivateAttachmentFileChange = (id, event) => {
-//     const file = event.target.files[0];
-//     if (!file) return;
-
-//     // Validate file size (e.g., 5MB max)
-//     if (file.size > 5 * 1024 * 1024) {
-//       toast.error("File size must be less than 5MB");
-//       return;
-//     }
-//     setPrivateAttachments(
-//       privateAttachments.map((attachment) =>
-//         attachment.id === id
-//           ? { ...attachment, file, fileName: file.name }
-//           : attachment
-//       )
-//     );
-//   };
-
-//   const handlePrivateAttachmentFileClick = (index) => {
-//     privateAttachmentFileInputRefs.current[index]?.click();
-//   };
-
-//   // Reference URL section
-//   const [referenceUrls, setReferenceUrls] = useState([
-//     { id: 1, url: "", description: "" },
-//   ]);
-
-//   const addNewReferenceUrl = () => {
-//     setReferenceUrls([
-//       ...referenceUrls,
-//       {
-//         id: referenceUrls.length + 1,
-//         url: "",
-//         description: "",
-//       },
-//     ]);
-//   };
-
-//   const removeReferenceUrl = (id) => {
-//     setReferenceUrls(referenceUrls.filter((reference) => reference.id !== id));
-//   };
-
-//   // Create a separate function for resetting the form
-//   const resetFormToDefault = () => {
-//     // Reset the form if using a form ref
-//     if (formRef.current) {
-//       formRef.current.reset();
-//     }
-
-//     setFormData({
-//       quoteDate: new Date(),
-//       quoteName: "",
-//       crmAccountName: "",
-//       crmAccountNameString: "",
-//       postProduction: "",
-//       leadTime: "",
-//       taxRate: "",
-//       locationName: "",
-//       hasCustomerPo: "",
-//       poNumber: "",
-//       salesperson: "",
-//       salespersonName: "",
-//       vendorNumber: "",
-//       crmContactName: "",
-//       privateNotes: "",
-//       publicNotes: "",
-//       isHotJob: "",
-//       billingAddress: {
-//         street: "",
-//         city: "",
-//         state: "",
-//         zip: "",
-//       },
-//       shippingAddress: {
-//         street: "",
-//         city: "",
-//         state: "",
-//         zip: "",
-//       },
-//       isDesignProofNeeded: "",
-//       approvedOn: null,
-//       commitmentDate: null,
-//       customerDueDate: null,
-//       Delivery_address: {
-//         address_line_1: "",
-//         address_line_2: "",
-//         district_city: "",
-//         state_province: "",
-//         postal_Code: "",
-//       },
-//       Desired_delivery_date: null,
-
-//       Vehicle_number: "",
-//       Delivery_Address_rented_truck: {
-//         address_line_1: "",
-//         address_line_2: "",
-//         district_city: "",
-//         state_province: "",
-//         postal_Code: "",
-//       },
-//       Desired_delivery_date_Rented_truck: null,
-
-//       Do_we_know_who_is_picking_up: "",
-//       Name: "",
-//       Do_we_know_when_will_customer_pickup: "",
-//       PickUp_Date: null,
-
-//       Ship_to_address: {
-//         address_line_1: "",
-//         address_line_2: "",
-//         district_city: "",
-//         state_province: "",
-//       },
-//       Where_will_it_ship_from: "",
-//       Need_Multiple_Locations_Dropship: "",
-
-//       Our_Account: "",
-//       Next_day_shipment_needed: "",
-//       Regular_Ground_shipment: "",
-//       Charge_normal_markup: "",
-//       Account_Numer: "",
-//       Need_Multiple_Locations_Send_UPS_Our_Account: "",
-
-//       Customer_account: "",
-//       Need_Multiple_Locations_Send_UPS_customer: "",
-//       What_is_customer_account_number_to_charge_for_shipping_amount: "",
-
-//       Pallet_size_needed_provide_estimate: "",
-//       Who_will_arrange_freight_pickup: "",
-//       Date_of_freight_pickup_required_to_meet_customer_due_date: "",
-
-//       Type_of_Work_Needed: "",
-//       Install_Summary_of_Work: "",
-//       Manufacture_Type: "",
-//       Miss_DIG_required1: "",
-//       Install_type: "",
-//       Sign_Permit_Required: "",
-//       Electrical_Permit_Required: "",
-//       Electrical_Connection_Made_by_Us: "",
-//       Has_the_wall_recently_been_painted: "",
-//       What_floor_s_will_Signage_be_installed: "",
-//       Is_There_a_Working_Elevator_Available: "",
-//       Is_Rental_Equipment_Needed: "",
-//       In_House_Large_Equipment_Needed: "",
-//       In_house_equipment: "",
-//       Any_obstruction_in_the_install_area: "",
-//       Rental_Equipment: "",
-//       TYPE_OF_WALL_SURFACE_BEING_INSTALLED: "",
-//       Whta_type_of_Hardware_Specific: "",
-//       URL_Link1: "",
-//       URL_Link2: "",
-//       Preferred_Date_1: "",
-//       Preferred_Date_2: "",
-//       Preferred_Time: "",
-//       Is_Hardware_Needed: "",
-//       Hardware_Grade: "",
-//       Appprox_fabrication_time_Hours: "",
-//       How_many_installers_needed2: "",
-//       Number_of_Visits_needed: "",
-//       Estimated_hours_of_travel: "",
-//       Estimated_hours_on_site: "",
-//       Production_due_date: "",
-//       Fabrication_due_date: "",
-//       Installation_due_date: "",
-//     });
-
-//     // Reset items to initial state
-//     setItems([
-//       {
-//         id: 1,
+//         id: prev.length + 1,
 //         Item: "",
 //         Qty: "",
 //         Unit: "",
@@ -1022,49 +879,297 @@
 //         Margin: "",
 //         piecePrice: "0.00",
 //         amount: "0.00",
+//         isPieceCostFocused: false,
+//         isMarkupFocused: false,
 //       },
 //     ]);
+//   };
 
-//     // Reset attachments and URLs
-//     setCustomerAttachments([
-//       { id: 1, file: null, fileDescription: "", fileName: "" },
-//     ]);
-//     setPrivateAttachments([
-//       { id: 1, file: null, fileDescription: "", fileName: "" },
-//     ]);
-//     setReferenceUrls([{ id: 1, url: "", description: "" }]);
+//   const removeItem = (id) => {
+//     setItems(items.filter((item) => item.id !== id));
+//   };
 
-//     // Reset notes editors visibility
-//     setShowPublicNotes(false);
-//     setShowPrivateNotes(false);
-//     setOpenDescriptionEditorId(null);
+//   // Handler for Product Type change
+//   const handleProductTypeChange = (id, value) => {
+//     const selectedProductType = productTypeOptions.find(
+//       (option) => option.value === value
+//     );
+//     setItems(
+//       items.map((item) =>
+//         item.id === id
+//           ? {
+//               ...item,
+//               Product_Type1: value,
+//               Product_Type_Name: selectedProductType?.label || "",
+//             }
+//           : item
+//       )
+//     );
+//     // Force recalculation by updating a dummy state
+//     setForceUpdate((prev) => !prev); // Add this state at the top: const [forceUpdate, setForceUpdate] = useState(false);
+//   };
 
-//     // Reset accounting summary
-//     setAccountingSummary({
-//       totalCost: 0,
-//       subTotal: 0,
-//       jobProfit: 0,
-//       jobProfitPercent: 0,
-//       salesTax: 0,
-//       total: 0,
-//       pastDue: 0,
-//       downPaymentPercent: 0,
-//       downPaymentAmount: 0,
-//       creditLimit: 0,
-//       balanceDue: 0,
-//       totalReceivable: 0,
+//   const handlePieceCostChange = (id, value) => {
+//     setItems((prev) => {
+//       return prev.map((item) => {
+//         if (item.id === id) {
+//           const Piece_cost = parseFloat(value) || 0;
+//           const Margin = parseFloat(item.Margin) || 0;
+//           const qty = parseFloat(item.Qty) || 0;
+//           const piecePrice = Piece_cost * (1 + Margin / 100);
+//           const amount = piecePrice * qty;
+
+//           return {
+//             ...item,
+//             Piece_cost: value,
+//             piecePrice: piecePrice.toFixed(2),
+//             amount: amount.toFixed(2),
+//           };
+//         }
+//         return item;
+//       });
 //     });
 //   };
-//   // Create the complete data object
-//   // Handler for Form Submit
+
+//   const handleMarkupChange = (id, value) => {
+//     setItems((prev) => {
+//       return prev.map((item) => {
+//         if (item.id === id) {
+//           const Piece_cost = parseFloat(item.Piece_cost) || 0;
+//           const Margin = parseFloat(value) || 0;
+//           const qty = parseFloat(item.Qty) || 0;
+//           const piecePrice = Piece_cost * (1 + Margin / 100);
+//           const amount = piecePrice * qty;
+
+//           return {
+//             ...item,
+//             Margin: value,
+//             piecePrice: piecePrice.toFixed(2),
+//             amount: amount.toFixed(2),
+//           };
+//         }
+//         return item;
+//       });
+//     });
+//   };
+
+//   const handleQtyChange = (id, value) => {
+//     setItems((prev) => {
+//       return prev.map((item) => {
+//         if (item.id === id) {
+//           const Piece_cost = parseFloat(item.Piece_cost) || 0;
+//           const Margin = parseFloat(item.Margin) || 0;
+//           const qty = parseFloat(value) || 0;
+//           const piecePrice = Piece_cost * (1 + Margin / 100);
+//           const amount = piecePrice * qty;
+
+//           return {
+//             ...item,
+//             Qty: value,
+//             piecePrice: piecePrice.toFixed(2),
+//             amount: amount.toFixed(2),
+//           };
+//         }
+//         return item;
+//       });
+//     });
+//   };
+
+//   const handleMarkupBlur = (id) => {
+//     setItems(
+//       items.map((item) =>
+//         item.id === id ? { ...item, isMarkupFocused: false } : item
+//       )
+//     );
+//   };
+//   const handlePieceCostFocus = (id) => {
+//     setItems(
+//       items.map((item) =>
+//         item.id === id ? { ...item, isPieceCostFocused: true } : item
+//       )
+//     );
+//   };
+
+//   const handlePieceCostBlur = (id) => {
+//     setItems(
+//       items.map((item) =>
+//         item.id === id ? { ...item, isPieceCostFocused: false } : item
+//       )
+//     );
+//   };
+
+//   const handleMarkupFocus = (id) => {
+//     setItems(
+//       items.map((item) =>
+//         item.id === id ? { ...item, isMarkupFocused: true } : item
+//       )
+//     );
+//   };
+//   // Notes editors
+//   const [showPublicNotes, setShowPublicNotes] = useState(false);
+//   const [showPrivateNotes, setShowPrivateNotes] = useState(false);
+//   const [openDescriptionEditorId, setOpenDescriptionEditorId] = useState(null);
+
+//   const editorPrivate = useRef(null);
+//   const editorPublic = useRef(null);
+
+//   const config = useMemo(
+//     () => ({
+//       readonly: false,
+//       placeholder: "Start typings...",
+//       height: "600px",
+//       showCharsCounter: false,
+//       showWordsCounter: false,
+//       showXPathInStatusbar: false,
+//       removeButtons: ["file", "speechRecognize"],
+//     }),
+//     [placeholder]
+//   );
+
+//   const handlePrivateNotesChange = (newContent) => {
+//     setFormData((prev) => ({
+//       ...prev,
+//       privateNotes: newContent,
+//     }));
+//   };
+
+//   const handlePublicNotesChange = (newContent) => {
+//     setFormData((prev) => ({
+//       ...prev,
+//       publicNotes: newContent,
+//     }));
+//   };
+
+//   const handleOpenDescriptionEditor = (id) => {
+//     setOpenDescriptionEditorId(id);
+//   };
+
+//   const handleCloseDescriptionEditor = () => {
+//     setOpenDescriptionEditorId(null);
+//   };
+
+//   const handleDescriptionChange = (id, newContent) => {
+//     setItems((prev) =>
+//       prev.map((item) =>
+//         item.id === id ? { ...item, Description_Rich_Text: newContent } : item
+//       )
+//     );
+//   };
+
+//   // Down payment handler
+//   const handleDownPaymentChange = (e) => {
+//     const value = parseFloat(e.target.value) || 0;
+//     setAccountingSummary((prev) => ({
+//       ...prev,
+//       downPaymentPercent: value,
+//     }));
+//   };
+
+//   // Attachments
+//   const [customerAttachments, setCustomerAttachments] = useState([]);
+//   const attachmentFileInputRefs = useRef([]);
+
+//   const addNewCustomerAttachment = () => {
+//     setCustomerAttachments((prev) => [
+//       ...prev,
+//       {
+//         id: prev.length + 1,
+//         file: null,
+//         fileDescription: "",
+//       },
+//     ]);
+//   };
+
+//   const removeCustomerAttachment = (id) => {
+//     setCustomerAttachments((prev) =>
+//       prev.filter((attachment) => attachment.id !== id)
+//     );
+//   };
+
+//   const handleCustomerAttachmentFileChange = (id, event) => {
+//     const file = event.target.files[0];
+//     if (!file) return;
+
+//     if (file.size > 5 * 1024 * 1024) {
+//       toast.error("File size must be less than 5MB");
+//       return;
+//     }
+//     setCustomerAttachments((prev) =>
+//       prev.map((attachment) =>
+//         attachment.id === id
+//           ? {
+//               ...attachment,
+//               file,
+//               fileName: file.name, // Update fileName when file changes
+//             }
+//           : attachment
+//       )
+//     );
+//   };
+
+//   const handleCustomerAttachmentFileClick = (index) => {
+//     attachmentFileInputRefs.current[index]?.click();
+//   };
+
+//   const [privateAttachments, setPrivateAttachments] = useState([]);
+//   const privateAttachmentFileInputRefs = useRef([]);
+
+//   const addNewPrivateAttachment = () => {
+//     setPrivateAttachments((prev) => [
+//       ...prev,
+//       {
+//         id: prev.length + 1,
+//         file: null,
+//         fileDescription: "",
+//       },
+//     ]);
+//   };
+
+//   const removePrivateAttachment = (id) => {
+//     setPrivateAttachments((prev) =>
+//       prev.filter((attachment) => attachment.id !== id)
+//     );
+//   };
+
+//   const handlePrivateAttachmentFileChange = (id, event) => {
+//     const file = event.target.files[0];
+//     if (!file) return;
+
+//     if (file.size > 5 * 1024 * 1024) {
+//       toast.error("File size must be less than 5MB");
+//       return;
+//     }
+//     setPrivateAttachments((prev) =>
+//       prev.map((attachment) =>
+//         attachment.id === id
+//           ? {
+//               ...attachment,
+//               file,
+//               fileName: file.name, // Update fileName when file changes
+//             }
+//           : attachment
+//       )
+//     );
+//   };
+
+//   const handlePrivateAttachmentFileClick = (index) => {
+//     privateAttachmentFileInputRefs.current[index]?.click();
+//   };
+
+//   // Form submission
 //   const handleSubmit = async (e) => {
 //     e.preventDefault();
-//     // Required fields check
+
+//     console.log(formData);
+//     console.log(items);
+//     console.log(customerAttachments);
+//     console.log(privateAttachments);
+//     console.log(referenceUrls);
+
 //     const requiredFields = {
 //       quoteName: "SO Name",
 //       postProduction: "Post Production",
 //       taxRate: "Tax Rate",
-//       // Add other required fields
 //     };
 
 //     const missingFields = Object.entries(requiredFields)
@@ -1076,25 +1181,22 @@
 //       return;
 //     }
 
-//     setCreateSpinner(true);
-
+//     setEditSpinner(true);
 //     const refURLS = referenceUrls
 //       .map((item) => {
 //         if (item.url) {
 //           return { Url: { url: item.url }, Description: item.description };
 //         }
+//         return null;
 //       })
-//       .filter((item) => item !== undefined);
-//     console.log(formData);
-//     console.log(items);
-//     console.log(customerAttachments);
-//     console.log(privateAttachments);
-//     console.log(referenceUrls);
+//       .filter((item) => item !== null);
 
 //     // Create the complete data object
 //     const createCompleteData = (formData) => {
 //       const baseData = {
 //         // ... Main fields
+//         ID:estimateData.ID,
+//         Salesorder:estimateData.Salesorder,
 //         Tax_rate: formData.taxRate,
 //         SO_name: formData.quoteName,
 //         Status: "Draft",
@@ -1297,7 +1399,7 @@
 //     // Dynamically create the complete data object
 //     const completeData = createCompleteData(formData);
 
-//     // Create the payload with Salesorder_JSON as stringified complete data
+//     // Create the payload with Estimate_Json as stringified complete data
 //     const payload = {
 //       data: {
 //         ...completeData, // Spread all the original data
@@ -1306,34 +1408,30 @@
 //     };
 //     console.log("payload", payload);
 //     try {
-//       const result = await createEstimate(
+//       const result = await updateEstimate(
+//         id,
 //         payload,
 //         customerAttachments,
 //         privateAttachments
 //       );
 //       if (result.data) {
-//         console.log("xx", result.data);
-//         toast.success("Record created successfully!");
-//         resetFormToDefault();
-//         addEstimateById(result.data?.ID);
+//         toast.success("Updated successfully!");
+//         updateEstimateById(id);
 //         navigate("/");
 //       } else {
-//         // Log the result in case of failure for debugging
-//         console.error("Failed to create record:", result);
-//         toast.error("Failed to create record. Please try again.");
+//         console.error("Failed to update estimate:", result);
+//         toast.error("Failed to update estimate. Please try again.");
 //       }
 //     } catch (error) {
-//       console.error("Error creating estimate:", error);
-//       toast.error("An error occurred while creating the record.");
+//       console.error("Error updating estimate:", error);
+//       toast.error("An error occurred while updating the estimate.");
 //     } finally {
-//       setCreateSpinner(false);
+//       setEditSpinner(false);
 //     }
 //   };
 
-//   //Handler for Form Reset
-//   const formRef = useRef(null);
-//   const handleReset = () => {
-//     resetFormToDefault();
+//   const handleCancel = () => {
+//     window.history.back();
 //   };
 
 //   //////post product option////////////////////////////
@@ -1535,25 +1633,29 @@
 //     }));
 //   };
 
+//   if (isLoading || !estimateData) {
+//     return (
+//       <div className="flex justify-center items-center h-64">
+//         Loading estimate data...
+//       </div>
+//     );
+//   }
 //   // Render spinner if still loading
 //   if (loadingCreatorData) {
 //     return <PageSpinner />;
 //   }
 //   return (
 //     <div className="h-[90vh] w-full overflow-y-auto overflow-x-hidden">
-//       <form
-//         onSubmit={handleSubmit}
-//         ref={formRef}
-//         className="p-6  space-y-4 w-full"
-//       >
-//         <div className=" grid grid-cols-1 md:grid-cols-6 gap-6">
-//           <div className=" ">
+//       <form onSubmit={handleSubmit} className="p-6 space-y-4 w-full">
+//         <div className="flex flex-col md:flex-row gap-6 w-full mb-8">
+//           <div className="">
 //             <div>
 //               <label className="input-label">
 //                 CRM Account <span className="text-red-500">*</span>
 //               </label>
 //               <AccountDropdown
 //                 value={formData.crmAccountName}
+//                 initialLabel={formData.crmAccountNameString} // Pass the account name string
 //                 onChange={(value, accountName) => {
 //                   setFormData((prev) => ({
 //                     ...prev,
@@ -1598,26 +1700,25 @@
 //               <label className="input-label">
 //                 Post Production <span className="text-red-500">*</span>
 //               </label>
+//               <CustomDropdown
+//                 options={postProductionOptions}
+//                 value={formData.postProduction}
+//                 onChange={(value) =>
+//                   setFormData((prev) => ({
+//                     ...prev,
+//                     postProduction: value,
+//                   }))
+//                 }
+//                 placeholder="-Select-"
+//                 className="w-56"
+//               />
 //             </div>
-//             <CustomDropdown
-//               options={postProductionOptions}
-//               value={formData.postProduction}
-//               onChange={(value) =>
-//                 setFormData((prev) => ({
-//                   ...prev,
-//                   postProduction: value,
-//                 }))
-//               }
-//               placeholder="-Select-"
-//               className="w-56"
-//             />
 //           </div>
-//           <div className=" ">
+//           <div className="">
 //             <div>
 //               <label className="input-label">
-//                 SO Name <span className="text-red-500">*</span>
+//               SO Name <span className="text-red-500">*</span>
 //               </label>
-
 //               <input
 //                 type="text"
 //                 name="quoteName"
@@ -1633,7 +1734,7 @@
 //               <DatePicker
 //                 selected={formData.quoteDate}
 //                 onChange={handleDateChange}
-//                 className="input-box w-[225px]"
+//                 className="input-box"
 //                 dateFormat="dd-MMM-yyyy"
 //                 placeholderText="-Select-"
 //               />
@@ -1675,72 +1776,7 @@
 //               />
 //             </div>
 //           </div>
-//           <div className=" ">
-//             {/* Add these new fields after the existing ones */}
-//             <div className="">
-//               <label className="input-label">Is Design Proof Needed?</label>
-//               <CustomDropdown
-//                 options={designProofOptions}
-//                 value={formData.isDesignProofNeeded}
-//                 onChange={(value) =>
-//                   setFormData((prev) => ({
-//                     ...prev,
-//                     isDesignProofNeeded: value,
-//                   }))
-//                 }
-//                 placeholder="-Select-"
-//                 className="w-full"
-//               />
-//             </div>
-//             <div className="mt-4">
-//               <label className="input-label">Approved On</label>
-//               <DatePicker
-//                 selected={formData.approvedOn}
-//                 onChange={(date) =>
-//                   setFormData((prev) => ({
-//                     ...prev,
-//                     approvedOn: date,
-//                   }))
-//                 }
-//                 className="input-box w-[225px]"
-//                 dateFormat="dd-MMM-yyyy"
-//                 placeholderText="-Select-"
-//               />
-//             </div>
-
-//             <div className="mt-4">
-//               <label className="input-label">Commitment Date</label>
-//               <DatePicker
-//                 selected={formData.commitmentDate}
-//                 onChange={(date) =>
-//                   setFormData((prev) => ({
-//                     ...prev,
-//                     commitmentDate: date,
-//                   }))
-//                 }
-//                 className="input-box w-[225px]"
-//                 dateFormat="dd-MMM-yyyy"
-//                 placeholderText="-Select-"
-//               />
-//             </div>
-
-//             <div className="mt-4">
-//               <label className="input-label">Customer Due Date</label>
-//               <DatePicker
-//                 selected={formData.customerDueDate}
-//                 onChange={(date) =>
-//                   setFormData((prev) => ({
-//                     ...prev,
-//                     customerDueDate: date,
-//                   }))
-//                 }
-//                 className="input-box w-[225px]"
-//                 dateFormat="dd-MMM-yyyy"
-//                 placeholderText="-Select-"
-//               />
-//             </div>
-//           </div>
-//           <div className=" ">
+//           <div className="">
 //             <div className="">
 //               <label className="input-label">
 //                 Customer Provide PO# <span className="text-red-500">*</span>
@@ -1758,7 +1794,6 @@
 //                 className="w-full"
 //               />
 //             </div>
-//             {/* Conditionally render po number textbox if customer provide po is "yes" */}
 //             {formData.hasCustomerPo === "Yes" && (
 //               <div className="mt-4">
 //                 <label className="input-label">
@@ -1778,12 +1813,12 @@
 //               <input
 //                 type="text"
 //                 name="vendorNumber"
-//                 className="input-box" // Gray background indicates readonly
-//                 value={formData.vendorNumber} // Directly use account data
-//                 readOnly // Makes the field non-editable
+//                 className="input-box"
+//                 value={formData.vendorNumber}
+//                 readOnly
+//                 onChange={() => {}}
 //               />
 //             </div>
-//             {/* Is Hot Job */}
 //             <div className="mt-4">
 //               <label className="text-gray-600 mb-2 block text-sm">
 //                 Is Hot Job?
@@ -1814,13 +1849,76 @@
 //               </div>
 //             </div>
 //           </div>
+//           <div className=" ">
+//             {/* Add these new fields after the existing ones */}
+//             <div className="">
+//               <label className="input-label">Is Design Proof Needed?</label>
+//               <CustomDropdown
+//                 options={designProofOptions}
+//                 value={formData.isDesignProofNeeded}
+//                 onChange={(value) =>
+//                   setFormData((prev) => ({
+//                     ...prev,
+//                     isDesignProofNeeded: value,
+//                   }))
+//                 }
+//                 placeholder="-Select-"
+//                 className="w-full"
+//               />
+//             </div>
+//             <div className="mt-4">
+//               <label className="input-label">Approved On</label>
+//               <DatePicker
+//                 selected={formData.approvedOn}
+//                 onChange={(date) =>
+//                   setFormData((prev) => ({
+//                     ...prev,
+//                     approvedOn: date,
+//                   }))
+//                 }
+//                 className="input-box"
+//                 dateFormat="dd-MMM-yyyy"
+//                 placeholderText="-Select-"
+//               />
+//             </div>
 
-//           <div className=" md:w-96">
+//             <div className="mt-4">
+//               <label className="input-label">Commitment Date</label>
+//               <DatePicker
+//                 selected={formData.commitmentDate}
+//                 onChange={(date) =>
+//                   setFormData((prev) => ({
+//                     ...prev,
+//                     commitmentDate: date,
+//                   }))
+//                 }
+//                 className="input-box"
+//                 dateFormat="dd-MMM-yyyy"
+//                 placeholderText="-Select-"
+//               />
+//             </div>
+
+//             <div className="mt-4">
+//               <label className="input-label">Customer Due Date</label>
+//               <DatePicker
+//                 selected={formData.customerDueDate}
+//                 onChange={(date) =>
+//                   setFormData((prev) => ({
+//                     ...prev,
+//                     customerDueDate: date,
+//                   }))
+//                 }
+//                 className="input-box"
+//                 dateFormat="dd-MMM-yyyy"
+//                 placeholderText="-Select-"
+//               />
+//             </div>
+//           </div>
+//           <div className="md:w-96">
 //             <div className="relative">
 //               <label className="text-gray-600 mb-2 block text-sm">
 //                 Account Address <span className="text-primary">*</span>
 //               </label>
-
 //               <CustomDropdown
 //                 options={fetchedData.map((addr) => ({
 //                   value: addr.name,
@@ -1828,12 +1926,10 @@
 //                 }))}
 //                 value={selectedAddress?.name || ""}
 //                 onChange={handleAddressChange}
-//                 placeholder="-Select-"
+//                 placeholder="Select address"
 //                 className="w-full"
 //                 searchable="true"
 //               />
-//               {loadingAccountDetails && <PageSpinner />}
-//               {/* Display selected address details */}
 //               {selectedAddress && (
 //                 <div className="mt-4 flex items-start gap-16">
 //                   <div>
@@ -1863,11 +1959,8 @@
 //                 </div>
 //               )}
 //             </div>
-//             {/* {!loading &&( */}
 //             <div className="">
-//               {/* Add New Addresses Button */}
 //               <button
-//                 // onClick={handleAddNew}
 //                 type="button"
 //                 className="text-indigo-500 mt-2 hover:text-indigo-600 font-medium flex items-center gap-1"
 //               >
@@ -1875,10 +1968,8 @@
 //                 Add new address
 //               </button>
 //             </div>
-//             {/* )} */}
 //           </div>
 //         </div>
-
 //         {/* new section for post product*/}
 //         <div>
 //           {formData.postProduction === "We Deliver (Our Vehicle)" && (
@@ -1961,71 +2052,53 @@
 //             />
 //           )}
 //         </div>
-
 //         {/* Items Section */}
 //         <h1 className="mt-4 text-gray-700 font-roboto font-semibold">
 //           Item Details
 //         </h1>
 //         <div className="mx-auto overflow-x-auto mt-4 ">
 //           <div className="min-w-[700px]">
-//             {/* Header Section */}
-//             <div className="flex gap-4 items-start bg-gray-100 p-2 rounded-md-sm px-7 mb-4">
-//               {/* Product Type Header */}
+//             <div className="flex gap-4 items-start bg-gray-100 p-2 rounded-sm px-7 mb-4">
 //               <div className="w-48">
 //                 <label className="block text-sm font-medium text-gray-700 mb-1">
 //                   Product Type
 //                 </label>
 //               </div>
-
-//               {/* Item Details Header */}
 //               <div className="w-40">
 //                 <label className="block text-sm font-medium text-gray-700 mb-1">
 //                   Item Details <span className="text-red-500">*</span>
 //                 </label>
 //               </div>
-
-//               {/* Quantity Header */}
 //               <div className="w-16">
 //                 <label className="block text-sm font-medium text-gray-700 ml-3 mb-1">
 //                   Qty <span className="text-red-500">*</span>
 //                 </label>
 //               </div>
-
-//               {/* Unit Header */}
 //               <div className="w-28">
 //                 <label className="block text-sm font-medium text-gray-700 ml-3 mb-1">
 //                   Unit <span className="text-red-500">*</span>
 //                 </label>
 //               </div>
-
-//               {/* Description Header */}
 //               <div className="w-28">
 //                 <label className="block text-sm font-medium text-gray-700 mb-1 ml-3">
 //                   Description
 //                 </label>
 //               </div>
-//               {/* Piece Cost Header */}
 //               <div className="w-32 ">
 //                 <label className="block text-sm font-medium text-gray-700 mb-1">
 //                   Piece Cost ($)
 //                 </label>
 //               </div>
-
-//               {/* Markup Header */}
 //               <div className="w-28">
 //                 <label className="block text-sm font-medium text-gray-700 mb-1">
 //                   Markup (%)
 //                 </label>
 //               </div>
-
-//               {/* Piece Price Header */}
 //               <div className="w-32">
 //                 <label className="block text-sm font-medium text-gray-700 mb-1">
 //                   Piece Price ($)
 //                 </label>
 //               </div>
-
-//               {/* Amount Header */}
 //               <div className="w-28 mr-[-20px]">
 //                 <label className="block text-sm font-medium text-gray-700 mb-1">
 //                   Amount ($)
@@ -2043,8 +2116,6 @@
 //                     <i className="fas fa-x"></i>
 //                   </span>
 //                 </button>
-
-//                 {/* Product Type */}
 //                 <div className="w-44">
 //                   <CustomDropdown
 //                     options={productTypeOptions}
@@ -2057,8 +2128,6 @@
 //                     searchable="true"
 //                   />
 //                 </div>
-
-//                 {/* Item Details */}
 //                 <div className="w-40">
 //                   <input
 //                     type="text"
@@ -2074,7 +2143,6 @@
 //                     }
 //                   />
 //                 </div>
-//                 {/* Quantity */}
 //                 <div className="w-16">
 //                   <input
 //                     type="text"
@@ -2084,27 +2152,27 @@
 //                     onChange={(e) => handleQtyChange(item.id, e.target.value)}
 //                   />
 //                 </div>
-//                 {/* Unit */}
 //                 <div className="w-28">
-//                   <CustomDropdown
-//                     options={unitOptions.map((option) => ({
-//                       value: option,
-//                       label: option,
-//                     }))}
-//                     value={item.Unit}
-//                     onChange={(value) =>
-//                       setItems(
-//                         items.map((i) =>
-//                           i.id === item.id ? { ...i, Unit: value } : i
+//                   <div className="w-28">
+//                     <CustomDropdown
+//                       options={unitOptions.map((option) => ({
+//                         value: option,
+//                         label: option,
+//                       }))}
+//                       value={item.Unit}
+//                       onChange={(value) =>
+//                         setItems(
+//                           items.map((i) =>
+//                             i.id === item.id ? { ...i, Unit: value } : i
+//                           )
 //                         )
-//                       )
-//                     }
-//                     placeholder="-Select-"
-//                     className="w-full" // or your preferred width
-//                     searchable={false} // Since these are predefined units
-//                   />
+//                       }
+//                       placeholder="-Select-"
+//                       className="w-full" // or your preferred width
+//                       searchable={false} // Since these are predefined units
+//                     />
+//                   </div>
 //                 </div>
-//                 {/* Description */}
 //                 <div className="w-20">
 //                   <button
 //                     type="button"
@@ -2114,8 +2182,6 @@
 //                     <i className="fa-sharp fa-solid fa-square-plus"></i> Add
 //                   </button>
 //                 </div>
-
-//                 {/* Piece Cost Input */}
 //                 <div className="relative w-28">
 //                   <input
 //                     type="number"
@@ -2136,8 +2202,6 @@
 //                     $
 //                   </span>
 //                 </div>
-
-//                 {/* Markup Input */}
 //                 <div className="w-28 relative">
 //                   <input
 //                     type="number"
@@ -2158,8 +2222,6 @@
 //                     %
 //                   </span>
 //                 </div>
-
-//                 {/* Piece Price */}
 //                 <div className="w-28 relative">
 //                   <input
 //                     type="number"
@@ -2170,8 +2232,6 @@
 //                   />
 //                   <span className="input-span">$</span>
 //                 </div>
-
-//                 {/* Amount */}
 //                 <div className="w-28 relative">
 //                   <input
 //                     type="number"
@@ -2185,7 +2245,6 @@
 //               </div>
 //             ))}
 
-//             {/* Full-Screen Description Editor */}
 //             {openDescriptionEditorId && (
 //               <div className="fixed inset-0 bg-white z-50 p-6">
 //                 <div className="flex justify-between items-center mb-4">
@@ -2218,16 +2277,12 @@
 //             </div>
 //           </div>
 //         </div>
-//         {/* end items */}
 
 //         {/* Accounting Summary Section */}
 //         <div className="">
-//           {/* <h1 className="text-gray-700 font-roboto font-semibold mb-4">Accounting Summary</h1>
-//            */}
 //           <div className="grid grid-cols-3 gap-6">
 //             {/* First Column */}
 //             <div className="space-y-4">
-//               {/* Public Notes and Private Notes Section */}
 //               <h1 className="mt-4 text-gray-700 font-roboto font-semibold">
 //                 Notes
 //               </h1>
@@ -2252,7 +2307,6 @@
 //                 )}
 //               </div>
 
-//               {/* Public Notes Editor */}
 //               {showPublicNotes && (
 //                 <div className="fixed inset-0 bg-white z-50 p-6">
 //                   <div className="flex justify-between items-center mb-4">
@@ -2273,7 +2327,6 @@
 //                 </div>
 //               )}
 
-//               {/* Private Notes Editor */}
 //               {showPrivateNotes && (
 //                 <div className="fixed inset-0 bg-white z-50 p-6">
 //                   <div className="flex justify-between items-center mb-4">
@@ -2295,11 +2348,10 @@
 //                   />
 //                 </div>
 //               )}
-//               {/*ENd Public Notes and Private Notes Section */}
 //             </div>
+
 //             {/* Second Column */}
 //             <div className="space-y-4">
-//               {/* Total Cost */}
 //               <div className="flex items-center justify-between">
 //                 <label className="text-gray-600 text-sm">Total Cost</label>
 //                 <div className="relative w-40">
@@ -2320,7 +2372,6 @@
 //                 </div>
 //               </div>
 
-//               {/* Job Profit ($) */}
 //               <div className="flex items-center justify-between">
 //                 <label className="text-gray-600 text-sm">Job Profit</label>
 //                 <div className="relative w-40">
@@ -2341,7 +2392,6 @@
 //                 </div>
 //               </div>
 
-//               {/* Job Profit (%) */}
 //               <div className="flex items-center justify-between">
 //                 <label className="text-gray-600 text-sm">Job Profit %</label>
 //                 <div className="relative w-40">
@@ -2362,7 +2412,6 @@
 //                 </div>
 //               </div>
 
-//               {/* Past Due - This one works as is */}
 //               <div className="flex items-center justify-between">
 //                 <label className="text-gray-600 text-sm">Past Due</label>
 //                 <div className="relative w-40">
@@ -2377,7 +2426,6 @@
 //                 </div>
 //               </div>
 
-//               {/* Total Receivable */}
 //               <div className="flex items-center justify-between">
 //                 <label className="text-gray-600 text-sm">
 //                   Total Receivable
@@ -2402,7 +2450,6 @@
 //                 </div>
 //               </div>
 
-//               {/* Credit Limit - This one works as is */}
 //               <div className="flex items-center justify-between">
 //                 <label className="text-gray-600 text-sm">Credit Limit</label>
 //                 <div className="relative w-40">
@@ -2422,7 +2469,6 @@
 
 //             {/* Third Column */}
 //             <div className="space-y-4">
-//               {/* Sub-Total */}
 //               <div className="flex items-center justify-between">
 //                 <label className="text-gray-600 text-sm">Sub-Total</label>
 //                 <div className="relative w-40">
@@ -2443,7 +2489,6 @@
 //                 </div>
 //               </div>
 
-//               {/* Sales Tax */}
 //               <div className="flex items-center justify-between">
 //                 <label className="text-gray-600 text-sm">Sales Tax</label>
 //                 <div className="relative w-40">
@@ -2464,7 +2509,6 @@
 //                 </div>
 //               </div>
 
-//               {/* Total */}
 //               <div className="flex items-center justify-between">
 //                 <label className="text-gray-600 text-sm">Total</label>
 //                 <div className="relative w-40">
@@ -2485,7 +2529,6 @@
 //                 </div>
 //               </div>
 
-//               {/* Down Payment % - This one works as is */}
 //               <div className="flex items-center justify-between">
 //                 <label className="text-gray-600 text-sm">Down Payment %</label>
 //                 <div className="relative w-40">
@@ -2500,7 +2543,6 @@
 //                 </div>
 //               </div>
 
-//               {/* Down Payment Amount */}
 //               <div className="flex items-center justify-between">
 //                 <label className="text-gray-600 text-sm">
 //                   Down Payment Amount
@@ -2525,7 +2567,6 @@
 //                 </div>
 //               </div>
 
-//               {/* Balance Due */}
 //               <div className="flex items-center justify-between">
 //                 <label className="text-gray-600 text-sm">Balance Due</label>
 //                 <div className="relative w-40">
@@ -2555,7 +2596,7 @@
 //         </h1>
 //         <div className="mx-auto overflow-x-auto mt-4 pb-8">
 //           <div className="w-[500px]">
-//             <div className="flex gap-4 items-start bg-gray-100 p-2 rounded-md-sm px-7 mb-4">
+//             <div className="flex gap-4 items-start bg-gray-100 p-2 rounded-sm px-7 mb-4">
 //               <div className="w-40">
 //                 <label className="block text-sm font-medium text-gray-700 mb-1">
 //                   File Upload
@@ -2568,7 +2609,10 @@
 //               </div>
 //             </div>
 //             {customerAttachments.map((attachment, index) => (
-//               <div key={attachment.id} className="flex gap-4 mb-4 items-start">
+//               <div
+//                 key={`${attachment.id}-${index}`}
+//                 className="flex gap-4 mb-4 items-start"
+//               >
 //                 <button
 //                   type="button"
 //                   onClick={() => removeCustomerAttachment(attachment.id)}
@@ -2586,7 +2630,10 @@
 //                       className="input-box"
 //                       placeholder="Select File"
 //                       readOnly
-//                       value={attachment.file ? attachment.file.name : ""}
+//                       value={
+//                         attachment.fileName ||
+//                         (attachment.file ? attachment.file.name : "")
+//                       }
 //                       onClick={() => handleCustomerAttachmentFileClick(index)}
 //                     />
 //                     <input
@@ -2650,7 +2697,6 @@
 //             </div>
 //           </div>
 //         </div>
-//         {/* END Customer Attachments section */}
 
 //         {/* Private Attachments section */}
 //         <h1 className="mt-4 text-gray-700 font-roboto font-semibold">
@@ -2658,7 +2704,7 @@
 //         </h1>
 //         <div className="mx-auto overflow-x-auto mt-4 pb-8">
 //           <div className="w-[500px]">
-//             <div className="flex gap-4 items-start bg-gray-100 p-2 rounded-md-sm px-7 mb-4">
+//             <div className="flex gap-4 items-start bg-gray-100 p-2 rounded-sm px-7 mb-4">
 //               <div className="w-40">
 //                 <label className="block text-sm font-medium text-gray-700 mb-1">
 //                   File Upload
@@ -2671,7 +2717,10 @@
 //               </div>
 //             </div>
 //             {privateAttachments.map((attachment, index) => (
-//               <div key={attachment.id} className="flex gap-4 mb-4 items-start">
+//               <div
+//                 key={`${attachment.id}-${index}`}
+//                 className="flex gap-4 mb-4 items-start"
+//               >
 //                 <button
 //                   type="button"
 //                   onClick={() => removePrivateAttachment(attachment.id)}
@@ -2689,7 +2738,10 @@
 //                       className="input-box"
 //                       placeholder="Select File"
 //                       readOnly
-//                       value={attachment.file ? attachment.file.name : ""}
+//                       value={
+//                         attachment.fileName ||
+//                         (attachment.file ? attachment.file.name : "")
+//                       }
 //                       onClick={() => handlePrivateAttachmentFileClick(index)}
 //                     />
 //                     <input
@@ -2753,14 +2805,14 @@
 //             </div>
 //           </div>
 //         </div>
-//         {/* END Private Attachments section */}
+
 //         {/* Reference URL section */}
 //         <h1 className="mt-4 text-gray-700 font-roboto font-semibold">
 //           Reference URL
 //         </h1>
 //         <div className="mx-auto overflow-x-auto mt-4">
 //           <div className="w-[500px]">
-//             <div className="flex gap-4 items-start bg-gray-100 p-2 rounded-md-sm px-7 mb-4">
+//             <div className="flex gap-4 items-start bg-gray-100 p-2 rounded-sm px-7 mb-4">
 //               <div className="flex-1">
 //                 <label className="block text-sm font-medium text-gray-700 mb-1">
 //                   URL
@@ -2831,22 +2883,23 @@
 //             </div>
 //           </div>
 //         </div>
-//         {/* end refrence url */}
-//         {/* create reset button */}
-//         {createSpinner && <PageSpinner />}
+
+//         {/* Form buttons */}
+//         {loadingAccountDetails && <PageSpinner />}
+//         {editSpinner && <PageSpinner />}
 //         <div className="flex items-center mt-5 py-2 flex-row gap-3">
 //           <button type="submit" className="btn">
 //             <span>
 //               <i className="fas fa-save mr-2"></i>
 //             </span>
-//             Save
+//             Update
 //           </button>
 
-//           <button type="button" onClick={handleReset} className="btn2">
+//           <button type="button" onClick={handleCancel} className="btn2">
 //             <span>
-//               <i className="fas fa-refresh mr-2"></i>
+//               <i className="fas fa-times mr-2"></i>
 //             </span>
-//             Reset
+//             Cancel
 //           </button>
 //         </div>
 //       </form>
@@ -2854,29 +2907,37 @@
 //   );
 // };
 
-// export default Create; // Also ensure this matches the new component name
+// export default Edit;
 
-import { useState } from "react";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
+import React from "react";
 import ReceivingForm from "../components/Receiving/ReceivingForm";
+import { useNavigate, useParams } from "react-router-dom";
 import { useReceivings } from "../context/ReceivingContext";
-import { useNavigate } from "react-router-dom";
+import ShippingForm from "../components/Shipping/ShippingForm";
+import { useShippings } from "../context/ShippingContext";
 
-const Create = () => {
-  const { addReceiving } = useReceivings();
+const SoEdit = () => {
+  const { id } = useParams();
+  const { shippings, updateShipping } = useShippings();
   const navigate = useNavigate();
 
+  const receiving = shippings.find((item) => item.id === Number(id));
+
   const handleSubmit = (formData) => {
-    addReceiving(formData);
-    navigate("/");
+    updateShipping(Number(id), formData);
+    navigate("/so");
   };
+
+  if (!shippings) {
+    return <div>Shipping not found</div>;
+  }
+
   return (
     <div className="mx-auto p-6">
-      <h2 className="text-2xl font-bold mb-6">Create Receiving</h2>
-      <ReceivingForm onSubmit={handleSubmit} />
+      <h2 className="text-2xl font-bold mb-6">Edit Shipping</h2>
+      <ShippingForm onSubmit={handleSubmit} initialData={receiving} />
     </div>
   );
 };
 
-export default Create;
+export default SoEdit;

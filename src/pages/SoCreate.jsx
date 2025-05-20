@@ -2862,21 +2862,27 @@ import "react-datepicker/dist/react-datepicker.css";
 import ReceivingForm from "../components/Receiving/ReceivingForm";
 import { useReceivings } from "../context/ReceivingContext";
 import { useNavigate } from "react-router-dom";
+import ShippingForm from "../components/Shipping/ShippingForm";
+import { useShippings } from "../context/ShippingContext";
 
-const Create = () => {
-  const { addReceiving } = useReceivings();
+const SoCreate = () => {
+  const { addShipping } = useShippings();
   const navigate = useNavigate();
 
   const handleSubmit = (formData) => {
-    addReceiving(formData);
-    navigate("/");
+    // addShipping(formData);
+    addShipping({
+      ...formData,
+      id: Date.now(), // Generate unique ID
+    });
+    navigate("/so");
   };
   return (
     <div className="mx-auto p-6">
-      <h2 className="text-2xl font-bold mb-6">Create Receiving</h2>
-      <ReceivingForm onSubmit={handleSubmit} />
+      <h2 className="text-2xl font-bold mb-6">Create Shipping</h2>
+      <ShippingForm onSubmit={handleSubmit} />
     </div>
   );
 };
 
-export default Create;
+export default SoCreate;

@@ -7,21 +7,23 @@ import { AppContext } from '../context/AppContext';
 
 const navItems = [
   {
-    icon: <i className="fa-sharp fa-regular fa-calculator-simple text-[18px]"></i>,
-    name: "Estimates", 
+    icon: (
+      <i className="fa-sharp fa-regular fa-calculator-simple text-[18px]"></i>
+    ),
+    name: "Receiving",
     path: "/",
     //subItems: [{ name: "Ecommerce", path: "/", pro: false }],
   },
   {
     icon: <i className="fa-regular fa-file-invoice-dollar text-[18px]"></i>,
-    name: "Salesorders",
+    name: "Shipping",
     path: "/so",
   },
-  {
-    icon:<i className="text-[18px] fa-regular fa-palette"></i>,
-    name: "Designorders",
-    path: "/do",
-  },
+  // {
+  //   icon: <i className="text-[18px] fa-regular fa-palette"></i>,
+  //   name: "Designorders",
+  //   path: "/do",
+  // },
   // {
   //   name: "BOM",
   //   icon: <i className="fa-sharp fa-light fa-truck-moving text-[18px]"></i>,

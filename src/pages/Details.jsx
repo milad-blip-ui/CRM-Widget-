@@ -9,7 +9,7 @@
 // import PdfModal from '../components/detailpage/PdfModal';
 // import CommentSection from '../components/detailpage/CommentSection';
 // const DetailPage = () => {
-//   const { id } = useParams(); 
+//   const { id } = useParams();
 //   const { allItems, error, updateItemStatus,  } = useContext(AppContext);
 //   const [estimate, setEstimate] = useState(null);
 //   const navigate = useNavigate();
@@ -52,9 +52,8 @@
 //     }
 //   });
 
-
 //   useEffect(() => {
-//     // const estimateData = DEFAULT_CARDS.find(rec => rec.ID === id); 
+//     // const estimateData = DEFAULT_CARDS.find(rec => rec.ID === id);
 //     // setEstimate(estimateData);
 //     const estimateData = allItems.find(item => item.ID === id);
 //       setEstimate(estimateData);
@@ -75,13 +74,13 @@
 //       }
 //     };
 //     document.addEventListener('mousedown', handleClickOutside);
-    
+
 //     return () => {
 //       document.removeEventListener('mousedown', handleClickOutside);
 //     };
 //   }, []);
 //     ///////comment////////////////////////
-  
+
 //     const [comments, setComments] = useState([]);
 //     const [currentUser, setCurrentUser] = useState();
 //     useEffect(() => {
@@ -145,13 +144,13 @@
 //         //     Avatar:"https://contacts.zoho.com/file?ID=875356860&fs=thumb"
 //         //   }
 //         // ];
-        
+
 //         // setComments(response);
 //       };
-  
+
 //       fetchComments();
 //     }, [id]);
-  
+
 //   /////////end comment////////////////////
 //   if (!estimate) {
 //     return <div>No data found for ID: {id}</div>; // Handle case where no data was found
@@ -183,10 +182,10 @@
 //   // New function to handle Print option click
 //   const handlePrintClick = () => {
 //     setIsDropdownVisible(false);
-    
+
 //     const printContent = document.getElementById('print').innerHTML;
 //     const printWindow = window.open('', '_blank');
-    
+
 //     printWindow.document.write(`
 //       <html>
 //         <head>
@@ -244,11 +243,11 @@
 //         </body>
 //       </html>
 //     `);
-    
+
 //     printWindow.document.close();
 //   };
 //   ////////////////////////////////////////////////
-  
+
 //     // Function to handle PDF setting changes
 //     const handlePdfSettingChange = (setting, value) => {
 //       setPdfSettings(prev => {
@@ -269,19 +268,19 @@
 //         };
 //       });
 //     };
-  
+
 //     // Function to generate the PDF
 //     const handleGeneratePdf = async () => {
 //       try {
 //         const { jsPDF } = await import('jspdf');
-    
+
 //         const element = document.getElementById('farzan');
 //         const doc = new jsPDF({
 //           orientation: pdfSettings.orientation,
 //           unit: pdfSettings.unit,
 //           format: pdfSettings.pageSize
 //         });
-    
+
 //         await doc.html(element, {
 //           margin: 0,
 //           autoPaging: 'text',
@@ -290,18 +289,18 @@
 //           callback: (doc) => {
 //             if (pdfSettings.watermark.enabled) {
 //               const pageCount = doc.getNumberOfPages();
-              
+
 //               for (let i = 1; i <= pageCount; i++) {
 //                 doc.setPage(i);
-            
+
 //                 // Set watermark style - Lighter appearance
 //                 doc.setFont('helvetica', 'bold');
 //                 doc.setFontSize(60);
-                
+
 //                 // Use RGBA with lower opacity (0.1 to 0.3 range) and lighter gray
 //                 doc.setTextColor(160, 160, 160); // Light gray base color
 //                 doc.setGState(new doc.GState({ opacity: pdfSettings.watermark.opacity * 0.5 })); // Additional opacity control
-            
+
 //                 // Calculate center position
 //                 const pageWidth = doc.internal.pageSize.getWidth();
 //                 const pageHeight = doc.internal.pageSize.getHeight();
@@ -309,28 +308,28 @@
 //                 const textWidth = doc.getTextWidth(text);
 //                 const x = (pageWidth - textWidth) / 2;
 //                 const y = pageHeight / 2;
-            
+
 //                 // Add rotated watermark
 //                 doc.text(text, x, y, { angle: 45 });
 //               }
 //             }
-    
+
 //             doc.save(`quote-${estimate.Salesorder}.pdf`);
 //           }
 //         });
-    
+
 //       } catch (error) {
 //         console.error('Error generating PDF:', error);
 //         alert('Error generating PDF. Please try again.');
 //       }
 //     };
-  
+
 //     // Function to download the PDF
 //     const handleDownloadPdf = () => {
 //       // Implement PDF download functionality
 //       alert('PDF download functionality would be implemented here');
 //     };
-    
+
 //   return (
 //     <div className="bg-gray-100 p-4">
 //       <div className="">
@@ -343,12 +342,12 @@
 //                   {stages.map((stage, index) => {
 //                     const records = allItems.filter(item => item.Status === stage);
 //                     return (
-//                       <AccordionItem 
-//                         key={index} 
-//                         title={stage} 
-//                         records={records} 
-//                         isOpen={openIndex === index} 
-//                         onToggle={() => handleToggle(index)} 
+//                       <AccordionItem
+//                         key={index}
+//                         title={stage}
+//                         records={records}
+//                         isOpen={openIndex === index}
+//                         onToggle={() => handleToggle(index)}
 //                         currentActiveId={estimate.ID}
 //                       />
 //                     );
@@ -359,8 +358,8 @@
 
 //           {/* Right column (flexible width) */}
 //           <div className="flex-1 flex flex-col">
-//             <div 
-//                 id="fixbar" 
+//             <div
+//                 id="fixbar"
 //                 className='border-b text-sm shadow-sm border-b-gray-200 px-4 h-12 flex items-center justify-end gap-2 sticky top-0 z-10'
 //               >
 //                 <button onClick={handleSidebarToggle} className='border border-gray-300 px-2 py-[3px] hover:bg-black hover:text-white transition-all duration-500'>
@@ -409,11 +408,11 @@
 //                 </div>
 //                 <ItemDetails estimate={estimate} />
 //                 <h1 className='mt-2'>SO Name: {estimate.SO_name}</h1>
-//                 <LineItemsTable 
-//                   lineItems={estimate.Item_Details} 
-//                   accountingSummary={estimate.Accounting_Summary} 
+//                 <LineItemsTable
+//                   lineItems={estimate.Item_Details}
+//                   accountingSummary={estimate.Accounting_Summary}
 //                 />
-//                 <hr className='mt-4 border-b-0 border-gray-800' /> 
+//                 <hr className='mt-4 border-b-0 border-gray-800' />
 //                 <div className='text-xs text-gray-900 mt-1 pl-3'>
 //                   <a href='' className=''>Click Here For Terms & Conditions</a>< br /><br/>
 //                   26600 Heyn Drive, Novi, MI, 48374, United States | +12487359999 | www.the1source.com
@@ -445,12 +444,109 @@
 
 // export default DetailPage;
 
-import React from 'react'
+import React from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { useReceivings } from "../context/ReceivingContext";
 
 const Details = () => {
-  return (
-    <div>Details</div>
-  )
-}
+  const { id } = useParams();
+  const { receivings } = useReceivings();
+  const navigate = useNavigate();
 
-export default Details
+  const receiving = receivings.find((item) => item.id === Number(id));
+
+  if (!receiving) {
+    return (
+      <div className="max-w-4xl mx-auto p-6">
+        <div className="text-red-500">Receiving not found</div>
+        <button
+          onClick={() => navigate("/")}
+          className="mt-4 bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+        >
+          Back to List
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mx-auto p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold">Receiving Details</h2>
+        <div className="space-x-2">
+          <button
+            onClick={() => navigate(`/es-edit/${id}`)}
+            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+          >
+            Edit
+          </button>
+          <button
+            onClick={() => navigate("/")}
+            className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+          >
+            Back to List
+          </button>
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block font-medium">Receiving ID:</label>
+            <p className="mt-1 p-2 bg-gray-50 rounded">
+              {receiving.receivingId}
+            </p>
+          </div>
+          <div>
+            <label className="block font-medium">Receiving Date:</label>
+            <p className="mt-1 p-2 bg-gray-50 rounded">
+              {new Date(receiving.receivingDate).toLocaleDateString()}
+            </p>
+          </div>
+          <div>
+            <label className="block font-medium">Purchase Order:</label>
+            <p className="mt-1 p-2 bg-gray-50 rounded">
+              {receiving.purchaseOrder}
+            </p>
+          </div>
+          <div>
+            <label className="block font-medium">Supplier:</label>
+            <p className="mt-1 p-2 bg-gray-50 rounded">{receiving.supplier}</p>
+          </div>
+        </div>
+
+        <div className="mt-6">
+          <h3 className="text-lg font-semibold mb-4">Received Items</h3>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-4 py-2 text-left">Material</th>
+                  <th className="px-4 py-2 text-left">Qty Ordered</th>
+                  <th className="px-4 py-2 text-left">Qty Received</th>
+                  <th className="px-4 py-2 text-left">Source</th>
+                  <th className="px-4 py-2 text-left">Received Same</th>
+                </tr>
+              </thead>
+              <tbody>
+                {receiving.items.map((item, index) => (
+                  <tr key={index} className="border-b">
+                    <td className="px-4 py-2">{item.material}</td>
+                    <td className="px-4 py-2">{item.qtyOrdered}</td>
+                    <td className="px-4 py-2">{item.qtyReceived}</td>
+                    <td className="px-4 py-2">{item.source}</td>
+                    <td className="px-4 py-2">
+                      {item.receivedSame ? "Yes" : "No"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Details;

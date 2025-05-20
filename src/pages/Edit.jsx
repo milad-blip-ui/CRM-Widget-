@@ -2909,14 +2909,33 @@
 
 // export default Edit;
 
-
-
-import React from 'react'
+import React from "react";
+import ReceivingForm from "../components/Receiving/ReceivingForm";
+import { useNavigate, useParams } from "react-router-dom";
+import { useReceivings } from "../context/ReceivingContext";
 
 const Edit = () => {
-  return (
-    <div>Edit</div>
-  )
-}
+  const { id } = useParams();
+  const { receivings, updateReceiving } = useReceivings();
+  const navigate = useNavigate();
 
-export default Edit
+  const receiving = receivings.find((item) => item.id === Number(id));
+
+  const handleSubmit = (formData) => {
+    updateReceiving(Number(id), formData);
+    navigate("/");
+  };
+
+  if (!receiving) {
+    return <div>Receiving not found</div>;
+  }
+
+  return (
+    <div className="mx-auto p-6">
+      <h2 className="text-2xl font-bold mb-6">Edit Receiving</h2>
+      <ReceivingForm onSubmit={handleSubmit} initialData={receiving} />
+    </div>
+  );
+};
+
+export default Edit;
