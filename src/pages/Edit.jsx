@@ -2913,17 +2913,60 @@ import React from "react";
 import ReceivingForm from "../components/Receiving/ReceivingForm";
 import { useNavigate, useParams } from "react-router-dom";
 import { useReceivings } from "../context/ReceivingContext";
+import { formatDate } from "../utils/dateUtils";
+import updateEstimate from "../services/updateEstimate";
 
 const Edit = () => {
   const { id } = useParams();
   const { receivings, updateReceiving } = useReceivings();
   const navigate = useNavigate();
+  console.log(id);
 
-  const receiving = receivings.find((item) => item.id === Number(id));
+  const receiving = receivings.find((item) => item.ID === id);
+  console.log(receiving);
 
-  const handleSubmit = (formData) => {
-    updateReceiving(Number(id), formData);
-    navigate("/");
+  const handleSubmit = async (formData) => {
+    console.log(formData);
+    // Create the payload with Salesorder_JSON as stringified complete data
+    const payload = {
+      data: {
+        // ...formData, // Spread all the original data
+        Receiving_Date: formatDate(formData.Receiving_Date),
+        // Salesorder_JSON: JSON.stringify(completeData), // Add the complete data as JSON string
+        Receiving_ID:
+          formData?.Receiving_ID ||
+          new Date().getFullYear() + "/" + (new Date().getMonth() + 1),
+        Purchase_Order: formData?.ID,
+        Supplier: formData?.ID,
+        Receiving_Items: formData?.Receiving_Items.map((item) => ({
+          Material: item.Material.ID,
+          Qty_Received: item.Received_same_as_Ordered
+            ? item.Qty
+            : item.Qty_Received,
+          Source: item.Source,
+          Received_same_as_Ordered: item.Received_same_as_Ordered,
+        })),
+      },
+    };
+    console.log("payload", payload);
+    try {
+      const result = await updateEstimate(id, payload, "Receiving_Report");
+      if (result.data) {
+        console.log("xx", result.data);
+        updateReceiving(Number(id), [formData]);
+        navigate("/");
+      } else {
+        // Log the result in case of failure for debugging
+        console.error("Failed to create record:", result);
+      }
+    } catch (error) {
+      console.error("Error creating estimate:", error);
+    } finally {
+      // setCreateSpinner(false);
+    }
+
+    // updateReceiving(Number(id), formData);
+    // navigate("/");
   };
 
   if (!receiving) {
@@ -2932,7 +2975,7 @@ const Edit = () => {
 
   return (
     <div className="mx-auto p-6">
-      <h2 className="text-2xl font-bold mb-6">Edit Receiving</h2>
+      {/* <h2 className="text-2xl font-bold mb-6">Edit Receiving</h2> */}
       <ReceivingForm onSubmit={handleSubmit} initialData={receiving} />
     </div>
   );

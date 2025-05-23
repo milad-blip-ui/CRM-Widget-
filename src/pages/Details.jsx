@@ -453,7 +453,7 @@ const Details = () => {
   const { receivings } = useReceivings();
   const navigate = useNavigate();
 
-  const receiving = receivings.find((item) => item.id === Number(id));
+  const receiving = receivings.find((item) => item.ID === id);
 
   if (!receiving) {
     return (
@@ -472,7 +472,7 @@ const Details = () => {
   return (
     <div className="mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">Receiving Details</h2>
+        <h2 className="text-2xl font-bold"></h2>
         <div className="space-x-2">
           <button
             onClick={() => navigate(`/es-edit/${id}`)}
@@ -494,24 +494,26 @@ const Details = () => {
           <div>
             <label className="block font-medium">Receiving ID:</label>
             <p className="mt-1 p-2 bg-gray-50 rounded">
-              {receiving.receivingId}
+              {receiving.Receiving_ID}
             </p>
           </div>
           <div>
             <label className="block font-medium">Receiving Date:</label>
             <p className="mt-1 p-2 bg-gray-50 rounded">
-              {new Date(receiving.receivingDate).toLocaleDateString()}
+              {new Date(receiving.Receiving_Date).toLocaleDateString()}
             </p>
           </div>
           <div>
             <label className="block font-medium">Purchase Order:</label>
             <p className="mt-1 p-2 bg-gray-50 rounded">
-              {receiving.purchaseOrder}
+              {receiving.Purchase_Order.PO_ID}
             </p>
           </div>
           <div>
             <label className="block font-medium">Supplier:</label>
-            <p className="mt-1 p-2 bg-gray-50 rounded">{receiving.supplier}</p>
+            <p className="mt-1 p-2 bg-gray-50 rounded">
+              {receiving.Supplier.Name}
+            </p>
           </div>
         </div>
 
@@ -529,14 +531,14 @@ const Details = () => {
                 </tr>
               </thead>
               <tbody>
-                {receiving.items.map((item, index) => (
+                {receiving.Receiving_Items.map((item, index) => (
                   <tr key={index} className="border-b">
-                    <td className="px-4 py-2">{item.material}</td>
-                    <td className="px-4 py-2">{item.qtyOrdered}</td>
-                    <td className="px-4 py-2">{item.qtyReceived}</td>
-                    <td className="px-4 py-2">{item.source}</td>
+                    <td className="px-4 py-2">{item.Material.Search_Name}</td>
+                    <td className="px-4 py-2">{item.Qty}</td>
+                    <td className="px-4 py-2">{item.Qty_Received}</td>
+                    <td className="px-4 py-2">{item.Source}</td>
                     <td className="px-4 py-2">
-                      {item.receivedSame ? "Yes" : "No"}
+                      {item.Received_same_as_Ordered ? "Yes" : "No"}
                     </td>
                   </tr>
                 ))}

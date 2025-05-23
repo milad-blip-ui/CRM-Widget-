@@ -2864,22 +2864,50 @@ import { useReceivings } from "../context/ReceivingContext";
 import { useNavigate } from "react-router-dom";
 import ShippingForm from "../components/Shipping/ShippingForm";
 import { useShippings } from "../context/ShippingContext";
+import { formatDate } from "../utils/dateUtils";
+import createEstimate from "../services/createEstimate";
 
 const SoCreate = () => {
   const { addShipping } = useShippings();
   const navigate = useNavigate();
 
-  const handleSubmit = (formData) => {
+  const handleSubmit = async (formData) => {
     // addShipping(formData);
-    addShipping({
-      ...formData,
-      id: Date.now(), // Generate unique ID
-    });
-    navigate("/so");
+    const payload = {
+      data: {
+        ...formData, // Spread all the original data
+        Shipping_Date: formatDate(formData.Shipping_Date),
+        // Salesorder_JSON: JSON.stringify(completeData), // Add the complete data as JSON string
+      },
+    };
+    console.log("payload", payload);
+    try {
+      const result = await createEstimate(payload, "Shipping");
+      if (result.data) {
+        console.log("xx", result.data);
+        addShipping([{
+          ...formData,
+          // id: Date.now(), // Generate unique ID
+        }]);
+        navigate("/so");
+      } else {
+        // Log the result in case of failure for debugging
+        console.error("Failed to create record:", result);
+      }
+    } catch (error) {
+      console.error("Error creating estimate:", error);
+    } finally {
+      // setCreateSpinner(false);
+    }
+    // addShipping({
+    //   ...formData,
+    //   id: Date.now(), // Generate unique ID
+    // });
+    // navigate("/so");
   };
   return (
     <div className="mx-auto p-6">
-      <h2 className="text-2xl font-bold mb-6">Create Shipping</h2>
+      {/* <h2 className="text-2xl font-bold mb-6">Create Shipping</h2> */}
       <ShippingForm onSubmit={handleSubmit} />
     </div>
   );

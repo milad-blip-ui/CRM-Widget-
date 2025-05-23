@@ -6,7 +6,7 @@ export default function SoDetails() {
   const { shippings } = useShippings();
   const navigate = useNavigate();
 
-  const shipping = shippings.find((item) => item.id === Number(id));
+  const shipping = shippings.find((item) => item.ID === id);
 
   if (!shipping) {
     return (
@@ -25,7 +25,7 @@ export default function SoDetails() {
   return (
     <div className="mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">Shipping Details</h2>
+        <h2 className="text-2xl font-bold"></h2>
         <div className="space-x-2">
           <button
             onClick={() => navigate(`/so-edit/${id}`)}
@@ -47,22 +47,24 @@ export default function SoDetails() {
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block font-medium">Shipping ID:</label>
-            <p className="mt-1 p-2 bg-gray-50 rounded">{shipping.shippingId}</p>
+            <p className="mt-1 p-2 bg-gray-50 rounded">
+              {shipping.Shipping_ID}
+            </p>
           </div>
           <div>
             <label className="block font-medium">Shipping Date:</label>
             <p className="mt-1 p-2 bg-gray-50 rounded">
-              {new Date(shipping.shippingDate).toLocaleDateString()}
+              {new Date(shipping.Shipping_Date).toLocaleDateString()}
             </p>
           </div>
           <div>
             <label className="block font-medium">Ship Via:</label>
-            <p className="mt-1 p-2 bg-gray-50 rounded">{shipping.shipVia}</p>
+            <p className="mt-1 p-2 bg-gray-50 rounded">{shipping.Ship_via}</p>
           </div>
           <div>
             <label className="block font-medium">Account Number:</label>
             <p className="mt-1 p-2 bg-gray-50 rounded">
-              {shipping.accountNumber}
+              {shipping.Account_Number}
             </p>
           </div>
         </div>
@@ -74,37 +76,37 @@ export default function SoDetails() {
             <div>
               <label className="block font-medium">Address Line 1:</label>
               <p className="mt-1 p-2 bg-gray-50 rounded">
-                {shipping.address.line1}
+                {shipping.Shipping_Address.address_line_1}
               </p>
             </div>
             <div>
               <label className="block font-medium">Address Line 2:</label>
               <p className="mt-1 p-2 bg-gray-50 rounded">
-                {shipping.address.line2}
+                {shipping.Shipping_Address.address_line_2}
               </p>
             </div>
             <div>
               <label className="block font-medium">City/District:</label>
               <p className="mt-1 p-2 bg-gray-50 rounded">
-                {shipping.address.city}
+                {shipping.Shipping_Address.district_city}
               </p>
             </div>
             <div>
               <label className="block font-medium">State/Province:</label>
               <p className="mt-1 p-2 bg-gray-50 rounded">
-                {shipping.address.state}
+                {shipping.Shipping_Address.state_province}
               </p>
             </div>
             <div>
               <label className="block font-medium">Postal Code:</label>
               <p className="mt-1 p-2 bg-gray-50 rounded">
-                {shipping.address.postalCode}
+                {shipping.Shipping_Address.postal_code}
               </p>
             </div>
             <div>
               <label className="block font-medium">Country:</label>
               <p className="mt-1 p-2 bg-gray-50 rounded">
-                {shipping.address.country}
+                {shipping.Shipping_Address.country}
               </p>
             </div>
           </div>
@@ -123,11 +125,11 @@ export default function SoDetails() {
                 </tr>
               </thead>
               <tbody>
-                {shipping.items.map((item, index) => (
+                {shipping.SubForm.map((item, index) => (
                   <tr key={index} className="border-b">
-                    <td className="px-4 py-2">{item.item}</td>
-                    <td className="px-4 py-2">{item.description}</td>
-                    <td className="px-4 py-2">{item.qty}</td>
+                    <td className="px-4 py-2">{item.Item}</td>
+                    <td className="px-4 py-2">{item.Description}</td>
+                    <td className="px-4 py-2">{item.Qty}</td>
                   </tr>
                 ))}
               </tbody>

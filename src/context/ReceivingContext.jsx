@@ -7,17 +7,18 @@ export function ReceivingProvider({ children }) {
   const [receivings, setReceivings] = useState([]);
 
   const addReceiving = (data) => {
-    setReceivings([...receivings, { ...data, id: Date.now() }]);
+    // setReceivings([...receivings, { ...data, id: Date.now() }]);
+    setReceivings(data);
   };
 
   const updateReceiving = (id, updatedData) => {
     setReceivings(
-      receivings.map((item) => (item.id === id ? { ...updatedData, id } : item))
+      receivings.map((item) => (item.ID === id ? { ...updatedData, id } : item))
     );
   };
 
   const deleteReceiving = (id) => {
-    setReceivings(receivings.filter((item) => item.id !== id));
+    setReceivings(receivings.filter((item) => item.ID !== id));
   };
 
   return (

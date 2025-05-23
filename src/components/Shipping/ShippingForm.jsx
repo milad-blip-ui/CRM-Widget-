@@ -2,32 +2,33 @@
 import React, { useEffect, useState } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import initializeApp from "../../services/initializeApp";
 
 const initialItemState = {
-  item: "",
-  description: "",
-  qty: 0,
+  Item: "",
+  Description: "",
+  Qty: 0,
 };
 
 export default function ShippingForm({ onSubmit, initialData }) {
   const [formData, setFormData] = useState(
     initialData || {
-      shippingId: "",
-      shippingDate: new Date(),
-      shippingAccount: "",
-      salesOrder: "",
-      shipVia: "Fedex",
-      shipTo: "",
-      accountNumber: "",
-      address: {
-        line1: "",
-        line2: "",
-        city: "",
-        state: "",
-        postalCode: "",
+      Shipping_ID: new Date().getFullYear() + "/" + (new Date().getMonth() + 1),
+      Shipping_Date: new Date(),
+      Shippings_Account: "",
+      Salesorder: "",
+      Ship_via: "Fedex",
+      Ship_To: "",
+      Account_Number: "",
+      Shipping_Address: {
+        address_line_1: "",
+        address_line_2: "",
+        district_city: "",
+        state_province: "",
+        postal_code: "",
         country: "",
       },
-      items: [],
+      SubForm: [],
     }
   );
 
@@ -38,29 +39,29 @@ export default function ShippingForm({ onSubmit, initialData }) {
   const handleAddressChange = (e) => {
     setFormData({
       ...formData,
-      address: {
-        ...formData.address,
+      Shipping_Address: {
+        ...formData.Shipping_Address,
         [e.target.name]: e.target.value,
       },
     });
   };
 
   const handleItemChange = (index, e) => {
-    const newItems = [...formData.items];
+    const newItems = [...formData.SubForm];
     newItems[index][e.target.name] = e.target.value;
-    setFormData({ ...formData, items: newItems });
+    setFormData({ ...formData, SubForm: newItems });
   };
 
   const addItem = () => {
     setFormData({
       ...formData,
-      items: [...formData.items, { ...initialItemState }],
+      SubForm: [...formData.SubForm, { ...initialItemState }],
     });
   };
 
   const deleteItem = (index) => {
-    const newItems = formData.items.filter((_, i) => i !== index);
-    setFormData({ ...formData, items: newItems });
+    const newItems = formData.SubForm.filter((_, i) => i !== index);
+    setFormData({ ...formData, SubForm: newItems });
   };
 
   const handleSubmit = (e) => {
@@ -73,10 +74,25 @@ export default function ShippingForm({ onSubmit, initialData }) {
     if (initialData) {
       setFormData({
         ...initialData,
-        shippingDate: new Date(initialData?.shippingDate),
+        // shippingDate: new Date(initialData?.shippingDate),
       });
     }
   }, [initialData]);
+    
+  const [salesOrders, setSalesOrders] = useState([]);
+  const fetchData = async () => {
+    try {
+      const data = await initializeApp("All_Salesorder_List_view");
+      console.log("SO Data fetched successfully:", data);
+      setSalesOrders(data);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -86,9 +102,9 @@ export default function ShippingForm({ onSubmit, initialData }) {
           <label className="block text-sm font-medium mb-1">Shipping ID</label>
           <input
             type="text"
-            name="shippingId"
+            name="Shipping_ID"
             className="w-full p-2 border rounded"
-            value={formData.shippingId}
+            value={formData.Shipping_ID}
             onChange={handleChange}
             required
           />
@@ -99,9 +115,9 @@ export default function ShippingForm({ onSubmit, initialData }) {
             Shipping Date
           </label>
           <DatePicker
-            selected={formData.shippingDate}
+            selected={formData.Shipping_Date}
             onChange={(date) =>
-              setFormData({ ...formData, shippingDate: date })
+              setFormData({ ...formData, Shipping_Date: date })
             }
             className="w-[130%] p-2 border rounded"
             required
@@ -113,14 +129,15 @@ export default function ShippingForm({ onSubmit, initialData }) {
             Shipping Account
           </label>
           <select
-            name="shippingAccount"
+            name="Shippings_Account"
             className="w-full p-2 border rounded"
-            value={formData.shippingAccount}
+            value={formData.Shippings_Account}
             onChange={handleChange}
             required
           >
             <option value="">Select Account</option>
-            <option value="test">test</option>
+            <option value="1Source">1Source</option>
+            <option value="Customer">Customer</option>
             {/* Add dynamic options */}
           </select>
         </div>
@@ -128,16 +145,20 @@ export default function ShippingForm({ onSubmit, initialData }) {
         <div>
           <label className="block text-sm font-medium mb-1">Sales Order</label>
           <select
-            name="salesOrder"
+            name="Salesorder"
             className="w-full p-2 border rounded"
-            value={formData.salesOrder}
+            value={formData.Salesorder.ID}
             onChange={handleChange}
             required
           >
             <option value="">Select Sales Order</option>
-            <option value="test">test</option>
-
+            {/* <option value="4599841000004903095">RO-2504023</option> */}
             {/* Add dynamic options */}
+            {salesOrders.map((order) => (
+              <option key={order.ID} value={order.ID}>
+                {order.Salesorder}
+              </option>
+            ))}
           </select>
         </div>
 
@@ -145,9 +166,9 @@ export default function ShippingForm({ onSubmit, initialData }) {
           <label className="block text-sm font-medium mb-1">Ship To</label>
           <input
             type="text"
-            name="shipTo"
+            name="Ship_To"
             className="w-full p-2 border rounded"
-            value={formData.shipTo}
+            value={formData.Ship_To}
             onChange={handleChange}
             required
           />
@@ -159,9 +180,9 @@ export default function ShippingForm({ onSubmit, initialData }) {
           </label>
           <input
             type="text"
-            name="accountNumber"
+            name="Account_Number"
             className="w-full p-2 border rounded"
-            value={formData.accountNumber}
+            value={formData.Account_Number}
             onChange={handleChange}
             required
           />
@@ -172,9 +193,9 @@ export default function ShippingForm({ onSubmit, initialData }) {
             <label className="flex items-center">
               <input
                 type="radio"
-                name="shipVia"
+                name="Ship_via"
                 value="Fedex"
-                checked={formData.shipVia === "Fedex"}
+                checked={formData.Ship_via === "Fedex"}
                 onChange={handleChange}
                 className="mr-2"
               />
@@ -183,9 +204,9 @@ export default function ShippingForm({ onSubmit, initialData }) {
             <label className="flex items-center">
               <input
                 type="radio"
-                name="shipVia"
+                name="Ship_via"
                 value="UPS"
-                checked={formData.shipVia === "UPS"}
+                checked={formData.Ship_via === "UPS"}
                 onChange={handleChange}
                 className="mr-2"
               />
@@ -205,9 +226,9 @@ export default function ShippingForm({ onSubmit, initialData }) {
             </label>
             <input
               type="text"
-              name="line1"
+              name="address_line_1"
               className="w-full p-2 border rounded"
-              value={formData.address.line1}
+              value={formData.Shipping_Address.address_line_1}
               onChange={handleAddressChange}
               required
             />
@@ -218,9 +239,9 @@ export default function ShippingForm({ onSubmit, initialData }) {
             </label>
             <input
               type="text"
-              name="line2"
+              name="address_line_2"
               className="w-full p-2 border rounded"
-              value={formData.address.line2}
+              value={formData.Shipping_Address.address_line_2}
               onChange={handleAddressChange}
             />
           </div>
@@ -230,9 +251,9 @@ export default function ShippingForm({ onSubmit, initialData }) {
             </label>
             <input
               type="text"
-              name="city"
+              name="district_city"
               className="w-full p-2 border rounded"
-              value={formData.address.city}
+              value={formData.Shipping_Address.district_city}
               onChange={handleAddressChange}
               required
             />
@@ -243,9 +264,9 @@ export default function ShippingForm({ onSubmit, initialData }) {
             </label>
             <input
               type="text"
-              name="state"
+              name="state_province"
               className="w-full p-2 border rounded"
-              value={formData.address.state}
+              value={formData.Shipping_Address.state_province}
               onChange={handleAddressChange}
               required
             />
@@ -256,9 +277,9 @@ export default function ShippingForm({ onSubmit, initialData }) {
             </label>
             <input
               type="text"
-              name="postalCode"
+              name="postal_code"
               className="w-full p-2 border rounded"
-              value={formData.address.postalCode}
+              value={formData.Shipping_Address.postal_code}
               onChange={handleAddressChange}
               required
             />
@@ -268,13 +289,13 @@ export default function ShippingForm({ onSubmit, initialData }) {
             <select
               name="country"
               className="w-full p-2 border rounded"
-              value={formData.address.country}
+              value={formData.Shipping_Address.country}
               onChange={handleAddressChange}
               required
             >
               <option value="">Select Country</option>
               <option value="US">United States</option>
-              <option value="CA">Canada</option>
+              <option value="India">India</option>
               {/* Add more countries */}
             </select>
           </div>
@@ -305,14 +326,14 @@ export default function ShippingForm({ onSubmit, initialData }) {
               </tr>
             </thead>
             <tbody>
-              {formData.items.map((item, index) => (
+              {formData.SubForm.map((item, index) => (
                 <tr key={index} className="border-b">
                   <td className="px-4 py-2">
                     <input
                       type="text"
-                      name="item"
+                      name="Item"
                       className="w-full p-2 border rounded"
-                      value={item.item}
+                      value={item.Item}
                       onChange={(e) => handleItemChange(index, e)}
                       required
                     />
@@ -320,18 +341,18 @@ export default function ShippingForm({ onSubmit, initialData }) {
                   <td className="px-4 py-2">
                     <input
                       type="text"
-                      name="description"
+                      name="Description"
                       className="w-full p-2 border rounded"
-                      value={item.description}
+                      value={item.Description}
                       onChange={(e) => handleItemChange(index, e)}
                     />
                   </td>
                   <td className="px-4 py-2">
                     <input
                       type="number"
-                      name="qty"
+                      name="Qty"
                       className="w-full p-2 border rounded"
-                      value={item.qty}
+                      value={item.Qty}
                       onChange={(e) => handleItemChange(index, e)}
                       required
                     />
@@ -354,7 +375,7 @@ export default function ShippingForm({ onSubmit, initialData }) {
 
       <button
         type="submit"
-        className="bg-green-500 text-white px-6 py-2 rounded hover:bg-green-600"
+        className="bg-blue-500 text-white px-6 py-2 rounded hover:bg-green-600"
       >
         Submit Shipping
       </button>

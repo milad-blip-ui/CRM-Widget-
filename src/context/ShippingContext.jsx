@@ -7,17 +7,18 @@ export function ShippingProvider({ children }) {
   const [shippings, setShippings] = useState([]);
 
   const addShipping = (data) => {
-    setShippings([...shippings, { ...data, id: Date.now() }]);
+    // setShippings([...shippings, { ...data, id: Date.now() }]);
+    setShippings(data);
   };
 
   const updateShipping = (id, updatedData) => {
     setShippings(
-      shippings.map((item) => (item.id === id ? { ...updatedData, id } : item))
+      shippings.map((item) => (item.ID === id ? { ...updatedData, id } : item))
     );
   };
 
   const deleteShipping = (id) => {
-    setShippings(shippings.filter((item) => item.id !== id));
+    setShippings(shippings.filter((item) => item.ID !== id));
   };
 
   return (

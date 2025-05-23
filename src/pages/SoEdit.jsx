@@ -2921,7 +2921,7 @@ const SoEdit = () => {
   const { shippings, updateShipping } = useShippings();
   const navigate = useNavigate();
 
-  const receiving = shippings.find((item) => item.id === Number(id));
+  const receiving = shippings.find((item) => item.ID === id);
 
   const handleSubmit = (formData) => {
     updateShipping(Number(id), formData);
@@ -2934,7 +2934,7 @@ const SoEdit = () => {
 
   return (
     <div className="mx-auto p-6">
-      <h2 className="text-2xl font-bold mb-6">Edit Shipping</h2>
+      {/* <h2 className="text-2xl font-bold mb-6">Edit Shipping</h2> */}
       <ShippingForm onSubmit={handleSubmit} initialData={receiving} />
     </div>
   );

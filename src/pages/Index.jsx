@@ -413,10 +413,12 @@
 // ReceivingList.js
 import { Link, useNavigate } from "react-router-dom";
 import { useReceivings } from "../context/ReceivingContext";
+import { useEffect } from "react";
+import initializeApp from "../services/initializeApp";
 // import { useReceivings } from './ReceivingContext';
 
 export default function ReceivingList() {
-  const { receivings, deleteReceiving } = useReceivings();
+  const { receivings, deleteReceiving, addReceiving } = useReceivings();
   const navigate = useNavigate();
 
   const handleDelete = (e, id) => {
@@ -428,13 +430,28 @@ export default function ReceivingList() {
   const handleEdit = (e, item) => {
     e.stopPropagation(); // Stop event bubbling
     e.preventDefault(); // Prevent default action
-    navigate(`/es-edit/${item.id}`);
+    navigate(`/es-edit/${item.ID}`);
   };
+
+  const fetchData = async () => {
+    try {
+      const data = await initializeApp("Receiving_Report");
+      console.log("Receving Data fetched successfully:", data);
+      addReceiving(data);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+// console.log(receivings);
 
   return (
     <div className=" mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Receivings List</h1>
+        {/* <h1 className="text-2xl font-bold">Receivings List</h1> */}
         {/* <Link 
           to="/create"
           className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
@@ -455,18 +472,18 @@ export default function ReceivingList() {
             </tr>
           </thead>
           <tbody>
-            {receivings.map((item) => (
+            {receivings?.map((item) => (
               <tr
-                key={item.id}
+                key={item.ID}
                 className="border-b hover:bg-gray-50 cursor-pointer"
-                onClick={() => navigate(`/es-details/${item.id}`)}
+                onClick={() => navigate(`/es-details/${item.ID}`)}
               >
-                <td className="px-4 py-2">{item.receivingId}</td>
+                <td className="px-4 py-2">{item.Receiving_ID}</td>
                 <td className="px-4 py-2">
-                  {new Date(item.receivingDate).toLocaleDateString()}
+                  {new Date(item.Receiving_Date).toLocaleDateString()}
                 </td>
-                <td className="px-4 py-2">{item.purchaseOrder}</td>
-                <td className="px-4 py-2">{item.supplier}</td>
+                <td className="px-4 py-2">{item.Purchase_Order?.PO_ID}</td>
+                <td className="px-4 py-2">{item.Supplier.Name}</td>
                 <td className="px-4 py-2 space-x-2">
                   <button
                     // onClick={() => navigate(`/es-edit/${item.id}`)}
@@ -477,7 +494,7 @@ export default function ReceivingList() {
                   </button>
                   <button
                     // onClick={() => deleteReceiving(item.id)}
-                    onClick={(e) => handleDelete(e, item.id)}
+                    onClick={(e) => handleDelete(e, item.ID)}
                     className="text-red-500 hover:text-red-700"
                   >
                     Delete

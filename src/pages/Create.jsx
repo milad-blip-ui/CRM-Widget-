@@ -2856,24 +2856,51 @@
 
 // export default Create; // Also ensure this matches the new component name
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import ReceivingForm from "../components/Receiving/ReceivingForm";
 import { useReceivings } from "../context/ReceivingContext";
 import { useNavigate } from "react-router-dom";
+import createEstimate from "../services/createEstimate";
+import { formatDate } from "../utils/dateUtils";
+import initializeApp from "../services/initializeApp";
 
 const Create = () => {
   const { addReceiving } = useReceivings();
   const navigate = useNavigate();
 
-  const handleSubmit = (formData) => {
-    addReceiving(formData);
-    navigate("/");
+  const handleSubmit = async (formData) => {    
+    // Create the payload with Salesorder_JSON as stringified complete data
+    const payload = {
+      data: {
+        ...formData, // Spread all the original data
+        Receiving_Date: formatDate(formData.Receiving_Date),
+        // Salesorder_JSON: JSON.stringify(completeData), // Add the complete data as JSON string
+      },
+    };
+    console.log("payload", payload);
+    try {
+      const result = await createEstimate(payload, "Receiving");
+      if (result.data) {
+        console.log("xx", result.data);
+        addReceiving([formData]);
+        navigate("/");
+      } else {
+        // Log the result in case of failure for debugging
+        console.error("Failed to create record:", result);
+      }
+    } catch (error) {
+      console.error("Error creating estimate:", error);
+    } finally {
+      // setCreateSpinner(false);
+    }
+    // addReceiving(formData);
+    // navigate("/");
   };
   return (
     <div className="mx-auto p-6">
-      <h2 className="text-2xl font-bold mb-6">Create Receiving</h2>
+      {/* <h2 className="text-2xl font-bold mb-6">Create Receiving</h2> */}
       <ReceivingForm onSubmit={handleSubmit} />
     </div>
   );
